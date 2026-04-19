@@ -1,0 +1,3597 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+<meta charset="UTF-8"/>
+<meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no"/>
+<meta name="theme-color" content="#1a3a5c"/>
+<meta name="apple-mobile-web-app-capable" content="yes"/>
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data: blob: https:; connect-src 'self' https://*.supabase.co https://www.virustotal.com https://api.codetabs.com https://www.safeonweb.be https://economie.fgov.be https://www.cybermalveillance.gouv.fr https://www.signal-arnaques.com https://www.zataz.com https://www.undernews.fr https://www.it-connect.fr https://krebsonsecurity.com https://fonts.googleapis.com https://cert.be; worker-src 'self'; frame-src 'none'; object-src 'none';">
+<title>QR CERTIFY</title>
+<link rel="manifest" href="manifest.json"/>
+<link href="https://fonts.googleapis.com/css2?family=Manrope:wght@500;700;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet"/>
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Outlined:opsz,wght,FILL,GRAD@24,400,0,0&display=swap" rel="stylesheet"/>
+<style>
+/* ── Reset ── */
+*{box-sizing:border-box;-webkit-tap-highlight-color:transparent;margin:0;padding:0}
+html,body{height:100%;overflow:hidden;font-family:'Inter',sans-serif;background:#111;-webkit-font-smoothing:antialiased}
+
+/* ── Conteneur app (centré, max 430px) ── */
+#app{
+  position:relative;
+  width:100%;max-width:430px;height:100dvh;
+  margin:0 auto;
+  overflow:hidden;
+  background:#f7f9fc;
+  box-shadow:0 0 60px rgba(0,0,0,.6);
+  display:flex;flex-direction:column;
+}
+
+/* ── Écrans : cachés par défaut, flex:1 quand actif (PAS position:absolute) ── */
+.screen{
+  display:none;
+  flex-direction:column;
+  flex:1;
+  overflow:hidden;
+  background:#f7f9fc;
+  min-height:0;   /* indispensable pour que flex:1 fonctionne avec overflow */
+}
+.screen.s-dark{background:#0d1f35}
+
+/* ── Scroll interne ── */
+.scroll{flex:1;overflow-y:auto;overflow-x:hidden;-webkit-overflow-scrolling:touch}
+.scroll::-webkit-scrollbar{width:0}
+
+/* ── Header commun ── */
+.header{
+  flex-shrink:0;
+  display:flex;align-items:center;gap:12px;
+  padding:48px 20px 16px;
+  background:rgba(26,58,92,.97);
+  backdrop-filter:blur(12px);
+}
+.header h1,.header h2{font-family:'Manrope',sans-serif;font-weight:700;color:#fff;font-size:18px}
+.header-spacer{flex:1}
+
+/* ── Bouton icône rond ── */
+.icon-btn{
+  width:36px;height:36px;border-radius:50%;border:none;cursor:pointer;
+  display:flex;align-items:center;justify-content:center;
+  background:rgba(255,255,255,.13);color:#fff;
+  transition:background .15s,transform .1s;flex-shrink:0;
+}
+.icon-btn:active{transform:scale(.92);background:rgba(255,255,255,.2)}
+.icon-btn .material-symbols-outlined{font-size:20px}
+
+/* ── Bouton primaire ── */
+.btn{
+  display:flex;align-items:center;justify-content:center;gap:8px;
+  padding:14px 20px;border-radius:14px;border:none;cursor:pointer;
+  font-family:'Inter',sans-serif;font-size:14px;font-weight:600;
+  transition:opacity .15s,transform .1s;
+}
+.btn:active{opacity:.82;transform:scale(.97)}
+.btn-primary{background:linear-gradient(135deg,#1a3a5c,#316bf3);color:#fff}
+.btn-secondary{background:#eceef1;color:#191c1e}
+.btn-danger{background:#ffdad6;color:#ba1a1a}
+.btn-full{width:100%}
+
+/* ── Card ── */
+.card{background:#fff;border-radius:16px;border:1px solid #eceef1;overflow:hidden}
+
+/* ── Press effect ── */
+.press{transition:transform .1s,opacity .1s;cursor:pointer}
+.press:active{transform:scale(.96);opacity:.83}
+
+/* ── Bottom nav ── */
+#bottom-nav{
+  flex-shrink:0;
+  display:flex;align-items:center;justify-content:space-around;
+  padding:10px 8px 18px;
+  background:rgba(247,249,252,.96);
+  border-top:1px solid #eceef1;
+  backdrop-filter:blur(10px);
+}
+#bottom-nav.hidden{display:none}
+.nav-tab{
+  display:flex;flex-direction:column;align-items:center;gap:3px;
+  padding:4px 16px;border:none;background:none;cursor:pointer;
+  font-family:'Inter',sans-serif;font-size:11px;font-weight:500;color:#73777f;
+  transition:color .15s;
+}
+.nav-tab:active{opacity:.7}
+.nav-tab .material-symbols-outlined{font-size:24px;transition:color .15s}
+.nav-tab.active{color:#436084}
+.nav-tab.active .material-symbols-outlined{color:#436084}
+/* Bouton scanner central */
+.nav-scan{
+  width:56px;height:56px;border-radius:18px;border:none;cursor:pointer;
+  background:linear-gradient(135deg,#1a3a5c,#316bf3);
+  display:flex;align-items:center;justify-content:center;
+  box-shadow:0 4px 16px rgba(49,107,243,.4);
+  margin-bottom:4px;
+  transition:transform .1s,box-shadow .1s;
+}
+.nav-scan:active{transform:scale(.93);box-shadow:0 2px 8px rgba(49,107,243,.3)}
+.nav-scan .material-symbols-outlined{color:#fff;font-size:26px}
+
+/* ── Toggle switch ── */
+.toggle-track{
+  width:44px;height:24px;border-radius:99px;
+  background:#ccc;position:relative;cursor:pointer;
+  transition:background .2s;flex-shrink:0;
+}
+.toggle-track.on{background:#436084}
+.toggle-thumb{
+  position:absolute;top:2px;left:2px;
+  width:20px;height:20px;border-radius:50%;background:#fff;
+  box-shadow:0 1px 3px rgba(0,0,0,.3);
+  transition:transform .2s;
+}
+.toggle-track.on .toggle-thumb{transform:translateX(20px)}
+
+/* ── QR scanner ── */
+#video-el{width:100%;height:100%;object-fit:cover;display:block}
+.qr-frame-box{
+  width:220px;height:220px;position:relative;
+}
+.corner{position:absolute;width:28px;height:28px;border-color:#fff;border-style:solid}
+.corner.tl{top:0;left:0;border-width:3px 0 0 3px;border-radius:4px 0 0 0}
+.corner.tr{top:0;right:0;border-width:3px 3px 0 0;border-radius:0 4px 0 0}
+.corner.bl{bottom:0;left:0;border-width:0 0 3px 3px;border-radius:0 0 0 4px}
+.corner.br{bottom:0;right:0;border-width:0 3px 3px 0;border-radius:0 0 4px 0}
+.scan-line{
+  position:absolute;left:0;right:0;height:2px;
+  background:linear-gradient(90deg,transparent,#60a5fa,transparent);
+  animation:scanline 2s linear infinite;
+}
+@keyframes scanline{0%{top:8%}100%{top:88%}}
+
+/* ── Animations ── */
+@keyframes pulse{0%{transform:scale(1);opacity:.5}100%{transform:scale(1.5);opacity:0}}
+.pulse-anim{animation:pulse 2s ease-out infinite}
+
+@keyframes fadeIn{from{opacity:0;transform:translateY(12px)}to{opacity:1;transform:translateY(0)}}
+.fade-in{animation:fadeIn .3s ease}
+
+/* ── Toast ── */
+#toast{
+  position:fixed;bottom:90px;left:50%;transform:translateX(-50%);
+  background:#1a3a5c;color:#fff;padding:10px 20px;border-radius:99px;
+  font-size:14px;font-weight:600;z-index:9999;
+  opacity:0;transition:opacity .25s;pointer-events:none;white-space:nowrap;
+}
+#toast.show{opacity:1}
+
+/* ── Status colors ── */
+.status-certified{color:#1a7a40}
+.status-warning{color:#7a4f00}
+.status-blocked{color:#ba1a1a}
+.bg-certified{background:#d4f4e2}
+.bg-warning{background:#fef3c7}
+.bg-blocked{background:#ffdad6}
+
+/* ── Modal ── */
+.modal-overlay{
+  position:fixed;inset:0;background:rgba(0,0,0,.55);z-index:1000;
+  display:flex;align-items:flex-end;justify-content:center;
+  opacity:0;pointer-events:none;transition:opacity .25s;
+}
+.modal-overlay.open{opacity:1;pointer-events:all}
+.modal-sheet{
+  width:100%;max-width:430px;background:#fff;border-radius:24px 24px 0 0;
+  padding:24px 20px 40px;transform:translateY(100%);transition:transform .3s ease;
+}
+.modal-overlay.open .modal-sheet{transform:translateY(0)}
+.modal-handle{width:40px;height:4px;border-radius:2px;background:#ddd;margin:0 auto 20px}
+
+/* ── Input standard ── */
+.field-label{font-size:12px;font-weight:600;color:#73777f;margin-bottom:6px;display:block}
+.field-input{
+  width:100%;padding:12px 14px;border-radius:12px;border:1.5px solid #eceef1;
+  font-size:14px;font-family:'Inter',sans-serif;color:#191c1e;outline:none;
+  transition:border-color .15s;background:#f7f9fc;
+}
+.field-input:focus{border-color:#316bf3;background:#fff}
+
+/* ── News chips ── */
+.news-chip{
+  padding:6px 14px;border-radius:99px;font-size:12px;font-weight:600;
+  border:none;cursor:pointer;white-space:nowrap;
+  transition:background .15s,color .15s;
+}
+.news-card{
+  background:#fff;border:1px solid #eceef1;border-radius:16px;
+  padding:14px 16px;cursor:pointer;transition:transform .1s,opacity .1s;
+}
+.news-card:active{transform:scale(.97);opacity:.85}
+
+/* ── Avatar initiales ── */
+.avatar-initials{
+  width:52px;height:52px;border-radius:16px;
+  background:linear-gradient(135deg,#316bf3,#37b85c);
+  display:flex;align-items:center;justify-content:center;
+  font-family:'Manrope',sans-serif;font-weight:800;color:#fff;font-size:20px;
+  flex-shrink:0;
+}
+</style>
+</head>
+<body>
+
+<div id="app">
+
+<!-- ════════════════════════════════════
+     SPLASH
+════════════════════════════════════ -->
+<div id="s-splash" class="screen s-dark" style="display:flex;align-items:center;justify-content:center;flex-direction:column;gap:16px">
+  <div style="position:relative;display:flex;align-items:center;justify-content:center;width:96px;height:96px">
+    <div class="pulse-anim" style="position:absolute;inset:0;border-radius:50%;border:2px solid rgba(255,255,255,.2)"></div>
+    <div style="width:88px;height:88px;border-radius:28px;background:linear-gradient(135deg,#316bf3,#37b85c);display:flex;align-items:center;justify-content:center">
+      <span class="material-symbols-outlined" style="color:#fff;font-size:44px;font-variation-settings:'FILL' 1">shield</span>
+    </div>
+  </div>
+  <h1 style="font-family:'Manrope',sans-serif;font-weight:800;font-size:28px;color:#fff;letter-spacing:-.5px">QR CERTIFY</h1>
+  <p style="color:#93c5fd;font-size:14px;font-weight:500">Sovereign Shield</p>
+  <div style="display:flex;gap:6px;margin-top:16px">
+    <div style="width:8px;height:8px;border-radius:50%;background:#fff;animation:bounce .8s ease infinite 0ms"></div>
+    <div style="width:8px;height:8px;border-radius:50%;background:#fff;animation:bounce .8s ease infinite 150ms"></div>
+    <div style="width:8px;height:8px;border-radius:50%;background:#fff;animation:bounce .8s ease infinite 300ms"></div>
+  </div>
+  <p style="position:absolute;bottom:32px;color:rgba(255,255,255,.3);font-size:12px">Verify instantly. Trust completely.</p>
+  <style>@keyframes bounce{0%,100%{transform:translateY(0)}50%{transform:translateY(-8px)}}</style>
+</div>
+
+<!-- ════════════════════════════════════
+     HOME
+════════════════════════════════════ -->
+<div id="s-home" class="screen">
+  <!-- Header -->
+  <div style="flex-shrink:0;padding:48px 20px 16px;background:rgba(26,58,92,.97);display:flex;align-items:center;justify-content:space-between">
+    <div style="display:flex;align-items:center;gap:10px">
+      <button class="icon-btn" onclick="Nav.go('settings')" title="Paramètres">
+        <span class="material-symbols-outlined">settings</span>
+      </button>
+      <div>
+        <div style="font-family:'Manrope',sans-serif;font-weight:800;color:#fff;font-size:17px;line-height:1">QR CERTIFY</div>
+        <div style="color:#93c5fd;font-size:11px;margin-top:2px">Sovereign Shield</div>
+      </div>
+    </div>
+    <button class="press" onclick="Nav.go('settings')" style="width:38px;height:38px;border-radius:50%;overflow:hidden;border:2px solid rgba(96,165,250,.4);background:linear-gradient(135deg,#60a5fa,#7c3aed);display:flex;align-items:center;justify-content:center" id="home-avatar">
+      <span class="material-symbols-outlined" style="color:#fff;font-size:20px;font-variation-settings:'FILL' 1">person</span>
+    </button>
+  </div>
+
+  <div class="scroll" style="padding:16px 16px 8px">
+    <!-- Hero card -->
+    <div style="border-radius:24px;padding:24px;background:linear-gradient(135deg,#1a3a5c,#0d2a3a);position:relative;overflow:hidden;text-align:center;margin-bottom:14px">
+      <div style="position:absolute;inset:0;background:radial-gradient(circle at 70% 20%,rgba(96,165,250,.15),transparent 60%)"></div>
+      <div style="position:relative">
+        <div style="width:60px;height:60px;border-radius:18px;background:linear-gradient(135deg,#316bf3,#37b85c);margin:0 auto 12px;display:flex;align-items:center;justify-content:center">
+          <span class="material-symbols-outlined" style="color:#fff;font-size:30px;font-variation-settings:'FILL' 1">shield</span>
+        </div>
+        <div style="font-family:'Manrope',sans-serif;font-weight:800;color:#fff;font-size:18px;margin-bottom:4px">Sovereign Shield</div>
+        <div style="color:#93c5fd;font-size:13px">Vérifiez instantanément. Faites confiance complètement.</div>
+      </div>
+    </div>
+
+    <!-- Action buttons -->
+    <div style="display:grid;grid-template-columns:1fr 1fr 1fr;gap:8px;margin-bottom:14px">
+      <button class="press" onclick="Nav.go('scanner')" style="border-radius:18px;padding:14px 8px;background:#1a3a5c;border:none;display:flex;flex-direction:column;align-items:center;gap:8px;cursor:pointer">
+        <div style="width:40px;height:40px;border-radius:12px;background:rgba(49,107,243,.3);display:flex;align-items:center;justify-content:center">
+          <span class="material-symbols-outlined" style="color:#93c5fd;font-size:22px">qr_code_scanner</span>
+        </div>
+        <div>
+          <div style="font-family:'Manrope',sans-serif;font-weight:700;color:#fff;font-size:12px">Scanner QR</div>
+          <div style="color:#93c5fd;font-size:10px;margin-top:2px">Via caméra</div>
+        </div>
+      </button>
+      <button class="press" onclick="Nav.go('sms')" style="border-radius:18px;padding:14px 8px;background:#2a1a0d;border:none;display:flex;flex-direction:column;align-items:center;gap:8px;cursor:pointer">
+        <div style="width:40px;height:40px;border-radius:12px;background:rgba(245,158,11,.2);display:flex;align-items:center;justify-content:center">
+          <span class="material-symbols-outlined" style="color:#fbbf24;font-size:22px">sms</span>
+        </div>
+        <div>
+          <div style="font-family:'Manrope',sans-serif;font-weight:700;color:#fff;font-size:12px">Vérif. SMS</div>
+          <div style="color:#fbbf24;font-size:10px;margin-top:2px">Arnaques</div>
+        </div>
+      </button>
+      <button class="press" onclick="Nav.go('search')" style="border-radius:18px;padding:14px 8px;background:#0d2a1a;border:none;display:flex;flex-direction:column;align-items:center;gap:8px;cursor:pointer">
+        <div style="width:40px;height:40px;border-radius:12px;background:rgba(55,184,92,.2);display:flex;align-items:center;justify-content:center">
+          <span class="material-symbols-outlined" style="color:#4ade80;font-size:22px">link</span>
+        </div>
+        <div>
+          <div style="font-family:'Manrope',sans-serif;font-weight:700;color:#fff;font-size:12px">Vérif. URL</div>
+          <div style="color:#4ade80;font-size:10px;margin-top:2px">Manuel</div>
+        </div>
+      </button>
+    </div>
+
+    <!-- Stats -->
+    <div style="border-radius:16px;background:#eceef1;padding:14px 8px;display:flex;justify-content:space-around;margin-bottom:14px">
+      <div style="text-align:center">
+        <div id="stat-total" style="font-family:'Manrope',sans-serif;font-weight:800;font-size:20px;color:#191c1e">0</div>
+        <div style="font-size:11px;color:#73777f">Total</div>
+      </div>
+      <div style="width:1px;background:#d0d3d8"></div>
+      <div style="text-align:center">
+        <div id="stat-cert" style="font-family:'Manrope',sans-serif;font-weight:800;font-size:20px;color:#1a7a40">0</div>
+        <div style="font-size:11px;color:#73777f">Certifiés</div>
+      </div>
+      <div style="width:1px;background:#d0d3d8"></div>
+      <div style="text-align:center">
+        <div id="stat-warn" style="font-family:'Manrope',sans-serif;font-weight:800;font-size:20px;color:#7a4f00">0</div>
+        <div style="font-size:11px;color:#73777f">Attention</div>
+      </div>
+      <div style="width:1px;background:#d0d3d8"></div>
+      <div style="text-align:center">
+        <div id="stat-block" style="font-family:'Manrope',sans-serif;font-weight:800;font-size:20px;color:#ba1a1a">0</div>
+        <div style="font-size:11px;color:#73777f">Bloqués</div>
+      </div>
+    </div>
+
+    <!-- Graphique 7 jours -->
+    <div style="border-radius:16px;background:#fff;border:1px solid #eceef1;padding:14px 16px;margin-bottom:14px">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:12px">
+        <div style="font-family:'Manrope',sans-serif;font-weight:700;font-size:14px;color:#191c1e">Activité — 7 jours</div>
+        <div style="display:flex;align-items:center;gap:10px;font-size:10px;color:#73777f">
+          <span style="display:flex;align-items:center;gap:3px"><span style="width:8px;height:8px;border-radius:2px;background:#34d399;display:inline-block"></span>Certifié</span>
+          <span style="display:flex;align-items:center;gap:3px"><span style="width:8px;height:8px;border-radius:2px;background:#fbbf24;display:inline-block"></span>Attention</span>
+          <span style="display:flex;align-items:center;gap:3px"><span style="width:8px;height:8px;border-radius:2px;background:#f87171;display:inline-block"></span>Bloqué</span>
+        </div>
+      </div>
+      <div id="home-chart"></div>
+    </div>
+
+    <!-- Activité récente -->
+    <div style="margin-bottom:16px">
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:10px">
+        <div style="font-family:'Manrope',sans-serif;font-weight:700;font-size:15px;color:#191c1e">Activité récente</div>
+        <button onclick="Nav.go('history')" style="font-size:13px;font-weight:600;color:#0051d5;background:none;border:none;cursor:pointer">Voir tout</button>
+      </div>
+      <div id="recent-list">
+        <div style="text-align:center;padding:32px 0;color:#73777f;font-size:14px">
+          <span class="material-symbols-outlined" style="font-size:40px;display:block;margin-bottom:8px;color:#b0b5bf">history</span>
+          Aucun scan récent
+        </div>
+      </div>
+    </div>
+
+    <!-- Bannière Actualités -->
+    <div class="press" onclick="Nav.go('news')" style="border-radius:16px;background:linear-gradient(135deg,#1a0a2e,#3d1270);padding:14px 16px;display:flex;align-items:center;gap:12px;margin-bottom:14px;border:1px solid rgba(167,139,250,.25)">
+      <span class="material-symbols-outlined" style="color:#c084fc;font-size:26px;font-variation-settings:'FILL' 1;flex-shrink:0">newspaper</span>
+      <div style="flex:1">
+        <div style="color:#fff;font-size:13px;font-weight:600">Actualités Arnaques</div>
+        <div style="color:#c084fc;font-size:11px;margin-top:2px">🇧🇪 Safeonweb · 🇫🇷 Cybermalveillance · Signal-Arnaques</div>
+      </div>
+      <span class="material-symbols-outlined" style="color:#c084fc;font-size:20px">chevron_right</span>
+    </div>
+
+    <!-- Badge sécurité -->
+    <div style="border-radius:16px;background:#1a3a5c;padding:14px 16px;display:flex;align-items:center;gap:12px;margin-bottom:16px">
+      <span class="material-symbols-outlined" style="color:#4ade80;font-size:26px;font-variation-settings:'FILL' 1;flex-shrink:0">verified_user</span>
+      <div>
+        <div style="color:#fff;font-size:13px;font-weight:600">Chiffrement de bout en bout</div>
+        <div style="color:#93c5fd;font-size:11px;margin-top:2px">Vos données restent sur l'appareil</div>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════
+     SCANNER
+════════════════════════════════════ -->
+<div id="s-scanner" class="screen s-dark">
+  <video id="video-el" autoplay playsinline muted></video>
+
+  <!-- Overlay -->
+  <div style="position:absolute;inset:0;display:flex;flex-direction:column;background:linear-gradient(to bottom,rgba(0,0,0,.65) 0%,transparent 28%,transparent 65%,rgba(0,0,0,.75) 100%)">
+    <!-- Barre haute -->
+    <div style="display:flex;align-items:center;justify-content:space-between;padding:52px 20px 16px">
+      <button class="icon-btn" id="scan-back-btn" onclick="Nav.back()">
+        <span class="material-symbols-outlined">arrow_back</span>
+      </button>
+      <span style="font-family:'Manrope',sans-serif;font-weight:700;color:#fff;font-size:16px">Scanner QR</span>
+      <button class="icon-btn" id="flash-btn" onclick="Scanner.toggleFlash()">
+        <span class="material-symbols-outlined">flashlight_on</span>
+      </button>
+    </div>
+
+    <!-- Cadre QR -->
+    <div style="flex:1;display:flex;align-items:center;justify-content:center">
+      <div class="qr-frame-box">
+        <div class="corner tl"></div>
+        <div class="corner tr"></div>
+        <div class="corner bl"></div>
+        <div class="corner br"></div>
+        <div class="scan-line"></div>
+      </div>
+    </div>
+
+    <!-- Bas -->
+    <div style="padding:16px 20px 32px;text-align:center">
+      <p id="scan-status" style="color:rgba(255,255,255,.8);font-size:14px;margin-bottom:20px">Alignez le QR code dans le cadre</p>
+      <div style="display:flex;gap:10px;justify-content:center">
+        <button onclick="Scanner.pickImage()" style="display:flex;align-items:center;gap:8px;padding:12px 18px;border-radius:14px;border:none;background:rgba(255,255,255,.15);color:#fff;font-size:13px;font-weight:600;cursor:pointer">
+          <span class="material-symbols-outlined" style="font-size:18px">image</span>Galerie
+        </button>
+        <button onclick="Scanner.stop();Nav.go('search')" style="display:flex;align-items:center;gap:8px;padding:12px 18px;border-radius:14px;border:none;background:rgba(255,255,255,.15);color:#fff;font-size:13px;font-weight:600;cursor:pointer">
+          <span class="material-symbols-outlined" style="font-size:18px">keyboard</span>URL manuelle
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <!-- Erreur caméra -->
+  <div id="cam-error" style="display:none;position:absolute;inset:0;flex-direction:column;align-items:center;justify-content:center;text-align:center;padding:32px;background:#0d1f35">
+    <span class="material-symbols-outlined" style="font-size:64px;color:#93c5fd;margin-bottom:16px">videocam_off</span>
+    <div style="font-family:'Manrope',sans-serif;font-weight:700;color:#fff;font-size:20px;margin-bottom:8px">Caméra inaccessible</div>
+    <p style="color:#93c5fd;font-size:14px;margin-bottom:24px">Autorisez la caméra dans les paramètres du navigateur, ou entrez l'URL manuellement.</p>
+    <button class="btn btn-primary press" onclick="Scanner.stop();Nav.go('search')">Entrer une URL</button>
+    <button onclick="Nav.back()" style="margin-top:12px;color:#93c5fd;font-size:14px;background:none;border:none;cursor:pointer">← Retour</button>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════
+     SEARCH / VÉRIFIER URL
+════════════════════════════════════ -->
+<div id="s-search" class="screen">
+  <div class="header">
+    <button class="icon-btn" onclick="Nav.back()">
+      <span class="material-symbols-outlined">arrow_back</span>
+    </button>
+    <h2>Vérifier un lien</h2>
+  </div>
+
+  <div class="scroll" style="padding:20px 16px">
+    <div style="border-radius:20px;background:#1a3a5c;padding:20px;margin-bottom:16px">
+      <p style="color:#93c5fd;font-size:13px;margin-bottom:14px">Collez l'URL complète à analyser</p>
+      <div style="position:relative;margin-bottom:12px">
+        <span class="material-symbols-outlined" style="position:absolute;left:12px;top:50%;transform:translateY(-50%);color:#93c5fd;font-size:20px">link</span>
+        <input id="url-input" type="url" inputmode="url" placeholder="https://exemple.com/lien"
+          style="width:100%;padding:13px 13px 13px 40px;border-radius:12px;background:rgba(255,255,255,.1);border:1px solid rgba(255,255,255,.15);color:#fff;font-size:14px;font-family:'Inter',sans-serif;outline:none"
+          onfocus="this.style.borderColor='#60a5fa'" onblur="this.style.borderColor='rgba(255,255,255,.15)'"
+          onkeydown="if(event.key==='Enter'){event.preventDefault();Verifier.run()}"/>
+      </div>
+      <button class="btn btn-primary btn-full press" onclick="Verifier.run()">
+        <span class="material-symbols-outlined" style="font-size:18px">security</span>
+        Analyser maintenant
+      </button>
+    </div>
+
+    <div style="font-family:'Manrope',sans-serif;font-weight:700;font-size:14px;color:#191c1e;margin-bottom:10px">Ce que nous vérifions :</div>
+    <div style="display:flex;flex-direction:column;gap:8px">
+      <div style="display:flex;align-items:center;gap:12px;padding:12px;border-radius:12px;background:#eceef1">
+        <span class="material-symbols-outlined" style="color:#0051d5;font-size:20px">https</span>
+        <span style="font-size:13px;color:#191c1e">Protocole HTTPS sécurisé</span>
+      </div>
+      <div style="display:flex;align-items:center;gap:12px;padding:12px;border-radius:12px;background:#eceef1">
+        <span class="material-symbols-outlined" style="color:#0051d5;font-size:20px">domain_verification</span>
+        <span style="font-size:13px;color:#191c1e">Réputation du domaine</span>
+      </div>
+      <div style="display:flex;align-items:center;gap:12px;padding:12px;border-radius:12px;background:#eceef1">
+        <span class="material-symbols-outlined" style="color:#0051d5;font-size:20px">phishing</span>
+        <span style="font-size:13px;color:#191c1e">Détection de phishing</span>
+      </div>
+      <div style="display:flex;align-items:center;gap:12px;padding:12px;border-radius:12px;background:#eceef1">
+        <span class="material-symbols-outlined" style="color:#0051d5;font-size:20px">block</span>
+        <span style="font-size:13px;color:#191c1e">Listes noires mondiales</span>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════
+     RÉSULTAT
+════════════════════════════════════ -->
+<div id="s-result" class="screen">
+  <div id="result-content" style="display:flex;flex-direction:column;height:100%"></div>
+</div>
+
+<!-- ════════════════════════════════════
+     HISTORIQUE
+════════════════════════════════════ -->
+<div id="s-history" class="screen">
+  <div class="header" style="flex-direction:column;gap:12px;align-items:stretch">
+    <div style="display:flex;align-items:center;gap:12px">
+      <button class="icon-btn" onclick="Nav.back()">
+        <span class="material-symbols-outlined">arrow_back</span>
+      </button>
+      <span style="font-family:'Manrope',sans-serif;font-weight:700;color:#fff;font-size:18px;flex:1">Historique</span>
+      <button onclick="HistoryScreen.clear()" style="background:none;border:none;color:#fca5a5;font-size:13px;font-weight:600;cursor:pointer">Effacer</button>
+    </div>
+    <!-- Filtres -->
+    <div style="display:flex;gap:8px;overflow-x:auto;padding-bottom:2px">
+      <button onclick="HistoryScreen.filter('all')" data-f="all" class="filter-chip" style="padding:6px 14px;border-radius:99px;font-size:12px;font-weight:600;border:none;cursor:pointer;white-space:nowrap;background:#fff;color:#1a3a5c">Tous</button>
+      <button onclick="HistoryScreen.filter('certified')" data-f="certified" class="filter-chip" style="padding:6px 14px;border-radius:99px;font-size:12px;font-weight:600;border:none;cursor:pointer;white-space:nowrap;background:rgba(255,255,255,.18);color:#fff">Certifiés</button>
+      <button onclick="HistoryScreen.filter('warning')" data-f="warning" class="filter-chip" style="padding:6px 14px;border-radius:99px;font-size:12px;font-weight:600;border:none;cursor:pointer;white-space:nowrap;background:rgba(255,255,255,.18);color:#fff">Attention</button>
+      <button onclick="HistoryScreen.filter('blocked')" data-f="blocked" class="filter-chip" style="padding:6px 14px;border-radius:99px;font-size:12px;font-weight:600;border:none;cursor:pointer;white-space:nowrap;background:rgba(255,255,255,.18);color:#fff">Bloqués</button>
+    </div>
+  </div>
+  <div id="history-list" class="scroll" style="padding:12px 16px 16px;display:flex;flex-direction:column;gap:10px"></div>
+</div>
+
+<!-- ════════════════════════════════════
+     PARAMÈTRES
+════════════════════════════════════ -->
+<div id="s-settings" class="screen">
+  <div class="header">
+    <button class="icon-btn" onclick="Nav.back()">
+      <span class="material-symbols-outlined">arrow_back</span>
+    </button>
+    <h2>Paramètres</h2>
+  </div>
+
+  <div class="scroll" style="padding:16px">
+    <!-- Profil -->
+    <div style="border-radius:20px;background:#1a3a5c;padding:18px;display:flex;align-items:center;gap:14px;margin-bottom:16px">
+      <div id="settings-avatar" class="avatar-initials">?</div>
+      <div style="flex:1">
+        <div id="settings-name" style="font-family:'Manrope',sans-serif;font-weight:700;color:#fff;font-size:15px">Mon profil</div>
+        <div id="settings-email" style="color:#93c5fd;font-size:12px;margin-top:2px">Non configuré</div>
+      </div>
+      <button onclick="Modal.open('profile')" style="background:rgba(255,255,255,.15);border:none;border-radius:10px;padding:6px 12px;color:#fff;font-size:12px;font-weight:600;cursor:pointer">Modifier</button>
+    </div>
+
+    <!-- Sécurité -->
+    <div style="font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.08em;color:#73777f;margin-bottom:8px;padding-left:4px">Sécurité</div>
+    <div class="card" style="margin-bottom:16px">
+      <div class="setting-row press" onclick="Biometric.toggle()" style="display:flex;align-items:center;gap:12px;padding:14px 16px;border-bottom:1px solid #f0f2f5">
+        <span class="material-symbols-outlined" style="color:#0051d5;font-size:22px">fingerprint</span>
+        <div style="flex:1">
+          <div style="font-size:14px;font-weight:500;color:#191c1e">Biométrie</div>
+          <div id="bio-status" style="font-size:12px;color:#73777f">Protéger l'accès aux paramètres</div>
+        </div>
+        <div class="toggle-track" id="tog-biometric"><div class="toggle-thumb"></div></div>
+      </div>
+      <div class="setting-row press" onclick="toggleSetting('turbo')" style="display:flex;align-items:center;gap:12px;padding:14px 16px">
+        <span class="material-symbols-outlined" style="color:#0051d5;font-size:22px">bolt</span>
+        <div style="flex:1">
+          <div style="font-size:14px;font-weight:500;color:#191c1e">Mode Turbo</div>
+          <div style="font-size:12px;color:#73777f">Lien certifié → retour scanner immédiat</div>
+        </div>
+        <div class="toggle-track" id="tog-turbo"><div class="toggle-thumb"></div></div>
+      </div>
+    </div>
+
+    <!-- Notifications -->
+    <div style="font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.08em;color:#73777f;margin-bottom:8px;padding-left:4px">Notifications</div>
+    <div class="card" style="margin-bottom:16px">
+      <div id="notif-permission-banner" style="display:none;background:#fff3cd;border-radius:12px 12px 0 0;padding:10px 14px;font-size:12px;color:#856404;display:flex;align-items:center;gap:8px">
+        <span class="material-symbols-outlined" style="font-size:16px;flex-shrink:0">info</span>
+        <span>Autorisez les notifications dans les paramètres Android</span>
+      </div>
+      <div class="setting-row press" onclick="toggleSetting('notif-scan')" style="display:flex;align-items:center;gap:12px;padding:14px 16px;border-bottom:1px solid #f0f2f5">
+        <span class="material-symbols-outlined" style="color:#0051d5;font-size:22px">notifications</span>
+        <div style="flex:1">
+          <div style="font-size:14px;font-weight:500;color:#191c1e">Alertes de scan</div>
+          <div style="font-size:12px;color:#73777f">Après chaque QR scanné</div>
+        </div>
+        <div class="toggle-track on" id="tog-notif-scan"><div class="toggle-thumb"></div></div>
+      </div>
+      <div class="setting-row press" onclick="toggleSetting('notif-threat')" style="display:flex;align-items:center;gap:12px;padding:14px 16px">
+        <span class="material-symbols-outlined" style="color:#0051d5;font-size:22px">gpp_bad</span>
+        <div style="flex:1">
+          <div style="font-size:14px;font-weight:500;color:#191c1e">Alertes menaces uniquement</div>
+          <div style="font-size:12px;color:#73777f">Seulement si lien bloqué ou suspect</div>
+        </div>
+        <div class="toggle-track on" id="tog-notif-threat"><div class="toggle-thumb"></div></div>
+      </div>
+    </div>
+
+    <!-- Données -->
+    <div style="font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.08em;color:#73777f;margin-bottom:8px;padding-left:4px">Données</div>
+    <div class="card" style="margin-bottom:16px">
+      <div class="press" onclick="HistoryScreen.clear()" style="display:flex;align-items:center;gap:12px;padding:14px 16px;border-bottom:1px solid #f0f2f5;cursor:pointer">
+        <span class="material-symbols-outlined" style="color:#73777f;font-size:22px">delete_sweep</span>
+        <div style="flex:1;font-size:14px;font-weight:500;color:#191c1e">Effacer l'historique</div>
+        <span class="material-symbols-outlined" style="color:#b0b5bf;font-size:20px">chevron_right</span>
+      </div>
+      <div class="press" onclick="exportLogs()" style="display:flex;align-items:center;gap:12px;padding:14px 16px;cursor:pointer">
+        <span class="material-symbols-outlined" style="color:#73777f;font-size:22px">download</span>
+        <div style="flex:1;font-size:14px;font-weight:500;color:#191c1e">Exporter les logs</div>
+        <span class="material-symbols-outlined" style="color:#b0b5bf;font-size:20px">chevron_right</span>
+      </div>
+    </div>
+
+    <!-- Analyse -->
+    <div style="font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.08em;color:#73777f;margin-bottom:8px;padding-left:4px">Analyse</div>
+    <div class="card" style="margin-bottom:16px">
+      <div class="press" onclick="Modal.open('apikey')" style="display:flex;align-items:center;gap:12px;padding:14px 16px;cursor:pointer">
+        <span class="material-symbols-outlined" style="color:#0051d5;font-size:22px">api</span>
+        <div style="flex:1">
+          <div style="font-size:14px;font-weight:500;color:#191c1e">Clé API VirusTotal</div>
+          <div id="vt-status-label" style="font-size:12px;color:#73777f;margin-top:2px">Analyse locale uniquement</div>
+        </div>
+        <span class="material-symbols-outlined" style="color:#b0b5bf;font-size:20px">chevron_right</span>
+      </div>
+    </div>
+
+    <!-- À propos -->
+    <div style="font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.08em;color:#73777f;margin-bottom:8px;padding-left:4px">À propos</div>
+    <div class="card" style="margin-bottom:24px">
+      <div style="display:flex;align-items:center;justify-content:space-between;padding:14px 16px;border-bottom:1px solid #f0f2f5">
+        <span style="font-size:14px;font-weight:500;color:#191c1e">Version</span>
+        <span style="font-size:14px;color:#73777f">1.0.0</span>
+      </div>
+      <div style="display:flex;align-items:center;justify-content:space-between;padding:14px 16px">
+        <span style="font-size:14px;font-weight:500;color:#191c1e">Conditions d'utilisation</span>
+        <span class="material-symbols-outlined" style="color:#b0b5bf;font-size:20px">chevron_right</span>
+      </div>
+    </div>
+
+    <!-- Compte -->
+    <div style="font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.08em;color:#73777f;margin-bottom:8px;padding-left:4px">Compte</div>
+    <div class="card" style="margin-bottom:16px">
+      <div id="settings-auth-row" style="padding:14px 16px"></div>
+    </div>
+
+    <!-- Bouton déconnexion statique (toujours dans le DOM) -->
+    <button id="btn-signout" onclick="Auth.signOut()" style="display:none;width:100%;padding:14px;border-radius:16px;border:none;background:#ffdad6;color:#ba1a1a;font-size:15px;font-weight:700;cursor:pointer;margin-bottom:12px;align-items:center;justify-content:center;gap:8px">
+      <span class="material-symbols-outlined" style="font-size:20px">logout</span>Se déconnecter
+    </button>
+    <button id="btn-signin" onclick="Nav.go('login')" style="display:none;width:100%;padding:14px;border-radius:16px;border:none;background:#e8f0fe;color:#1a56db;font-size:15px;font-weight:700;cursor:pointer;margin-bottom:12px;align-items:center;justify-content:center;gap:8px">
+      <span class="material-symbols-outlined" style="font-size:20px">login</span>Se connecter
+    </button>
+
+    <div style="text-align:center;padding-bottom:8px">
+      <span class="material-symbols-outlined" style="color:#1a7a40;font-size:18px;font-variation-settings:'FILL' 1;vertical-align:middle">shield</span>
+      <span style="font-family:'Manrope',sans-serif;font-weight:700;font-size:13px;color:#191c1e;margin-left:6px">QR CERTIFY</span>
+      <div style="font-size:12px;color:#73777f;margin-top:4px">Sovereign Shield • Enterprise Security</div>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════
+     LIENS CERTIFIÉS
+════════════════════════════════════ -->
+<div id="s-certified" class="screen">
+  <div class="header" style="flex-direction:column;gap:12px;align-items:stretch">
+    <div style="display:flex;align-items:center;gap:12px">
+      <button class="icon-btn" onclick="Nav.back()">
+        <span class="material-symbols-outlined">arrow_back</span>
+      </button>
+      <span style="font-family:'Manrope',sans-serif;font-weight:700;color:#fff;font-size:18px;flex:1">Liens Certifiés</span>
+      <span id="certified-count" style="background:rgba(255,255,255,.15);color:#fff;font-size:12px;font-weight:700;padding:4px 10px;border-radius:8px">0</span>
+    </div>
+  </div>
+
+  <!-- Non connecté -->
+  <div id="certified-login-wall" style="display:none;flex:1;flex-direction:column;align-items:center;justify-content:center;padding:32px;text-align:center">
+    <span class="material-symbols-outlined" style="font-size:64px;color:#316bf3;margin-bottom:16px;font-variation-settings:'FILL' 1">cloud_lock</span>
+    <div style="font-family:'Manrope',sans-serif;font-weight:800;font-size:20px;color:#191c1e;margin-bottom:8px">Connexion requise</div>
+    <p style="color:#73777f;font-size:14px;margin-bottom:24px">Connectez-vous pour sauvegarder et synchroniser vos liens certifiés sur tous vos appareils.</p>
+    <button class="btn btn-primary" style="min-width:200px" onclick="Nav.go('login')">
+      <span class="material-symbols-outlined" style="font-size:18px">login</span>Se connecter
+    </button>
+  </div>
+
+  <!-- Liste des liens -->
+  <div id="certified-list" class="scroll" style="padding:12px 16px 16px;display:flex;flex-direction:column;gap:10px"></div>
+</div>
+
+<!-- ════════════════════════════════════
+     ÉCRAN CONNEXION / INSCRIPTION
+════════════════════════════════════ -->
+<div id="s-login" class="screen s-dark">
+  <div class="scroll" style="padding:0">
+
+    <!-- Header logo -->
+    <div style="padding:60px 24px 32px;text-align:center">
+      <div style="width:80px;height:80px;border-radius:24px;background:linear-gradient(135deg,#316bf3,#37b85c);margin:0 auto 16px;display:flex;align-items:center;justify-content:center">
+        <span class="material-symbols-outlined" style="color:#fff;font-size:40px;font-variation-settings:'FILL' 1">shield</span>
+      </div>
+      <div style="font-family:'Manrope',sans-serif;font-weight:800;font-size:26px;color:#fff">QR CERTIFY</div>
+      <div style="color:#93c5fd;font-size:14px;margin-top:4px">Sovereign Shield</div>
+    </div>
+
+    <!-- Carte formulaire -->
+    <div style="background:#fff;border-radius:28px 28px 0 0;padding:28px 24px 40px;min-height:100%">
+
+      <!-- Onglets Login / Inscription -->
+      <div style="display:flex;gap:0;margin-bottom:24px;border-radius:14px;background:#f0f2f5;padding:4px">
+        <button id="screen-tab-login" onclick="AuthScreen.switchTab('login')"
+          style="flex:1;padding:10px;border:none;border-radius:11px;background:#fff;font-family:'Manrope',sans-serif;font-size:14px;font-weight:700;color:#191c1e;cursor:pointer;box-shadow:0 1px 4px rgba(0,0,0,.08);transition:all .2s">
+          Connexion
+        </button>
+        <button id="screen-tab-register" onclick="AuthScreen.switchTab('register')"
+          style="flex:1;padding:10px;border:none;border-radius:11px;background:none;font-family:'Manrope',sans-serif;font-size:14px;font-weight:700;color:#73777f;cursor:pointer;transition:all .2s">
+          Inscription
+        </button>
+      </div>
+
+      <!-- Champ Nom (inscription uniquement) -->
+      <div id="screen-name-field" style="display:none;margin-bottom:16px">
+        <label class="field-label" style="color:#73777f">Nom d'affichage</label>
+        <div style="position:relative">
+          <span class="material-symbols-outlined" style="position:absolute;left:13px;top:50%;transform:translateY(-50%);color:#b0b5bf;font-size:20px">person</span>
+          <input id="screen-name" class="field-input" type="text" placeholder="Votre nom" maxlength="40"
+            style="padding-left:42px"/>
+        </div>
+      </div>
+
+      <!-- Champ Email -->
+      <div style="margin-bottom:16px">
+        <label class="field-label" style="color:#73777f">Email</label>
+        <div style="position:relative">
+          <span class="material-symbols-outlined" style="position:absolute;left:13px;top:50%;transform:translateY(-50%);color:#b0b5bf;font-size:20px">mail</span>
+          <input id="screen-email" class="field-input" type="email" inputmode="email" placeholder="votre@email.com"
+            style="padding-left:42px"
+            onkeydown="if(event.key==='Enter')document.getElementById('screen-password').focus()"/>
+        </div>
+      </div>
+
+      <!-- Champ Mot de passe -->
+      <div style="margin-bottom:8px">
+        <label class="field-label" style="color:#73777f">Mot de passe</label>
+        <div style="position:relative">
+          <span class="material-symbols-outlined" style="position:absolute;left:13px;top:50%;transform:translateY(-50%);color:#b0b5bf;font-size:20px">lock</span>
+          <input id="screen-password" class="field-input" type="password" placeholder="••••••••" minlength="6"
+            style="padding-left:42px;padding-right:44px"
+            onkeydown="if(event.key==='Enter')AuthScreen.submit()"/>
+          <button onclick="AuthScreen.togglePwd()" style="position:absolute;right:10px;top:50%;transform:translateY(-50%);background:none;border:none;cursor:pointer;padding:4px">
+            <span id="pwd-eye" class="material-symbols-outlined" style="color:#b0b5bf;font-size:20px">visibility</span>
+          </button>
+        </div>
+        <div id="screen-pwd-hint" style="display:none;font-size:11px;color:#73777f;margin-top:4px;padding-left:4px">Minimum 6 caractères</div>
+      </div>
+
+      <!-- Message d'erreur -->
+      <div id="screen-auth-error" style="display:none;margin-bottom:12px;padding:10px 14px;border-radius:12px;background:#ffdad6;color:#ba1a1a;font-size:13px;font-weight:500"></div>
+
+      <!-- Bouton principal -->
+      <button id="screen-submit-btn" class="btn btn-primary btn-full press" onclick="AuthScreen.submit()" style="margin-top:16px;padding:16px">
+        <span class="material-symbols-outlined" style="font-size:20px" id="screen-submit-icon">login</span>
+        <span id="screen-submit-label">Se connecter</span>
+      </button>
+
+      <!-- Séparateur -->
+      <div style="display:flex;align-items:center;gap:12px;margin:20px 0">
+        <div style="flex:1;height:1px;background:#eceef1"></div>
+        <span style="font-size:12px;color:#b0b5bf">ou</span>
+        <div style="flex:1;height:1px;background:#eceef1"></div>
+      </div>
+
+      <!-- Continuer sans compte -->
+      <button onclick="Nav.go('home')" style="width:100%;padding:14px;border:1.5px solid #eceef1;border-radius:14px;background:none;font-size:14px;font-weight:600;color:#73777f;cursor:pointer">
+        Continuer sans compte
+      </button>
+
+      <p style="text-align:center;font-size:11px;color:#b0b5bf;margin-top:20px">
+        Vos données restent sur l'appareil.<br>La connexion est optionnelle.
+      </p>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════
+     ADMIN — Vue globale
+════════════════════════════════════ -->
+<div id="s-admin" class="screen">
+  <div class="header" style="flex-direction:column;gap:12px;align-items:stretch">
+    <div style="display:flex;align-items:center;gap:12px">
+      <button class="icon-btn" onclick="Nav.back()">
+        <span class="material-symbols-outlined">arrow_back</span>
+      </button>
+      <span style="font-family:'Manrope',sans-serif;font-weight:700;color:#fff;font-size:18px;flex:1">Panel Admin</span>
+      <button onclick="AdminScreen.openAdd()" style="background:rgba(255,255,255,.2);border:none;cursor:pointer;padding:6px 12px;border-radius:8px;display:flex;align-items:center;gap:4px;color:#fff;font-size:12px;font-weight:600">
+        <span class="material-symbols-outlined" style="font-size:16px">add</span>Ajouter
+      </button>
+      <span id="admin-count" style="background:rgba(255,255,255,.15);color:#fff;font-size:12px;font-weight:700;padding:4px 10px;border-radius:8px">0</span>
+    </div>
+    <!-- Filtres par catégorie -->
+    <div style="display:flex;gap:8px;overflow-x:auto;padding-bottom:2px">
+      <button onclick="AdminScreen.filter('all')"    data-af="all"    class="admin-chip" style="padding:6px 14px;border-radius:99px;font-size:12px;font-weight:600;border:none;cursor:pointer;white-space:nowrap;background:#fff;color:#1a3a5c">Tous</button>
+      <button onclick="AdminScreen.filter('bank')"   data-af="bank"   class="admin-chip" style="padding:6px 14px;border-radius:99px;font-size:12px;font-weight:600;border:none;cursor:pointer;white-space:nowrap;background:rgba(255,255,255,.18);color:#fff">Banque</button>
+      <button onclick="AdminScreen.filter('gov')"    data-af="gov"    class="admin-chip" style="padding:6px 14px;border-radius:99px;font-size:12px;font-weight:600;border:none;cursor:pointer;white-space:nowrap;background:rgba(255,255,255,.18);color:#fff">Gouv.</button>
+      <button onclick="AdminScreen.filter('shop')"   data-af="shop"   class="admin-chip" style="padding:6px 14px;border-radius:99px;font-size:12px;font-weight:600;border:none;cursor:pointer;white-space:nowrap;background:rgba(255,255,255,.18);color:#fff">E-com.</button>
+      <button onclick="AdminScreen.filter('health')" data-af="health" class="admin-chip" style="padding:6px 14px;border-radius:99px;font-size:12px;font-weight:600;border:none;cursor:pointer;white-space:nowrap;background:rgba(255,255,255,.18);color:#fff">Santé</button>
+      <button onclick="AdminScreen.filter('edu')"    data-af="edu"    class="admin-chip" style="padding:6px 14px;border-radius:99px;font-size:12px;font-weight:600;border:none;cursor:pointer;white-space:nowrap;background:rgba(255,255,255,.18);color:#fff">Éduc.</button>
+      <button onclick="AdminScreen.filter('tech')"   data-af="tech"   class="admin-chip" style="padding:6px 14px;border-radius:99px;font-size:12px;font-weight:600;border:none;cursor:pointer;white-space:nowrap;background:rgba(255,255,255,.18);color:#fff">Tech</button>
+      <button onclick="AdminScreen.filter('media')"  data-af="media"  class="admin-chip" style="padding:6px 14px;border-radius:99px;font-size:12px;font-weight:600;border:none;cursor:pointer;white-space:nowrap;background:rgba(255,255,255,.18);color:#fff">Médias</button>
+      <button onclick="AdminScreen.filter('other')"    data-af="other"    class="admin-chip" style="padding:6px 14px;border-radius:99px;font-size:12px;font-weight:600;border:none;cursor:pointer;white-space:nowrap;background:rgba(255,255,255,.18);color:#fff">Autre</button>
+      <button onclick="AdminScreen.filter('reports')"  data-af="reports"  class="admin-chip" style="padding:6px 14px;border-radius:99px;font-size:12px;font-weight:600;border:none;cursor:pointer;white-space:nowrap;background:rgba(186,26,26,.35);color:#fca5a5">🚩 Signalements</button>
+    </div>
+  </div>
+
+  <!-- Stats admin -->
+  <div id="admin-stats" style="flex-shrink:0;display:flex;justify-content:space-around;padding:14px 16px;background:#fff;border-bottom:1px solid #eceef1"></div>
+
+  <div id="admin-list"         class="scroll" style="padding:12px 16px 16px;display:flex;flex-direction:column;gap:10px"></div>
+  <div id="admin-reports-list" class="scroll" style="padding:12px 16px 16px;display:none;flex-direction:column;gap:10px"></div>
+</div>
+
+<!-- ════════════════════════════════════
+     ACTUALITÉS ARNAQUES
+════════════════════════════════════ -->
+<div id="s-news" class="screen">
+  <div class="header" style="flex-direction:column;gap:12px;align-items:stretch">
+    <div style="display:flex;align-items:center;gap:12px">
+      <button class="icon-btn" onclick="Nav.back()">
+        <span class="material-symbols-outlined">arrow_back</span>
+      </button>
+      <span style="font-family:'Manrope',sans-serif;font-weight:700;color:#fff;font-size:18px;flex:1">Actualités Arnaques</span>
+      <button class="icon-btn" onclick="NewsScreen.refresh()" title="Actualiser">
+        <span class="material-symbols-outlined">refresh</span>
+      </button>
+    </div>
+    <!-- Filtres source -->
+    <div style="display:flex;gap:8px;overflow-x:auto;padding-bottom:2px">
+      <button onclick="NewsScreen.filter('all')"       data-nf="all"       class="news-chip" style="background:#fff;color:#1a3a5c">Tous</button>
+      <button onclick="NewsScreen.filter('be')"        data-nf="be"        class="news-chip" style="background:rgba(255,255,255,.18);color:#fff">🇧🇪 Belgique</button>
+      <button onclick="NewsScreen.filter('fr')"        data-nf="fr"        class="news-chip" style="background:rgba(255,255,255,.18);color:#fff">🇫🇷 France</button>
+      <button onclick="NewsScreen.filter('arnaques')"  data-nf="arnaques"  class="news-chip" style="background:rgba(255,255,255,.18);color:#fff">💸 Arnaques</button>
+      <button onclick="NewsScreen.filter('phishing')"  data-nf="phishing"  class="news-chip" style="background:rgba(255,255,255,.18);color:#fff">🎣 Phishing</button>
+      <button onclick="NewsScreen.filter('sms')"       data-nf="sms"       class="news-chip" style="background:rgba(255,255,255,.18);color:#fff">📱 SMS/Appels</button>
+    </div>
+  </div>
+  <div id="news-list" class="scroll" style="padding:12px 16px 16px;display:flex;flex-direction:column;gap:10px"></div>
+</div>
+
+<!-- ════════════════════════════════════
+     ARTICLE (lecteur in-app)
+════════════════════════════════════ -->
+<div id="s-article" class="screen">
+  <div id="article-content" style="display:flex;flex-direction:column;height:100%"></div>
+</div>
+
+<!-- ════════════════════════════════════
+     SMS — Vérificateur de SMS suspects
+════════════════════════════════════ -->
+<div id="s-sms" class="screen">
+  <div class="header">
+    <button class="icon-btn" onclick="Nav.back()">
+      <span class="material-symbols-outlined">arrow_back</span>
+    </button>
+    <h2>Vérifier un SMS</h2>
+  </div>
+  <div class="scroll" style="padding:16px;display:flex;flex-direction:column;gap:12px">
+
+    <!-- Bannière info -->
+    <div style="background:#fff8e1;border:1px solid #ffe082;border-radius:14px;padding:12px 14px;display:flex;gap:10px;align-items:flex-start">
+      <span class="material-symbols-outlined" style="color:#f59e0b;font-size:20px;flex-shrink:0;margin-top:1px">sms</span>
+      <p style="font-size:13px;color:#78350f;margin:0;line-height:1.5">Reçu un SMS suspect ? Collez son contenu ci-dessous. L'app extrait les liens et les analyse avec <b>VirusTotal</b>.</p>
+    </div>
+
+    <!-- Zone de texte -->
+    <div>
+      <label class="field-label">Contenu du SMS</label>
+      <textarea id="sms-input" class="field-input"
+        rows="6"
+        placeholder="Collez votre SMS ici…&#10;Ex: Votre colis est bloqué ! Récupérez-le ici : https://chronopost-secure.xyz/claim"
+        style="resize:none;line-height:1.6;font-size:14px"></textarea>
+    </div>
+
+    <!-- Bouton analyser -->
+    <button id="sms-analyze-btn" class="btn btn-primary btn-full" onclick="SMSScreen.analyze()">
+      <span class="material-symbols-outlined" style="font-size:18px">manage_search</span>Analyser le SMS
+    </button>
+
+    <!-- Zone résultats -->
+    <div id="sms-results"></div>
+
+    <!-- Exemples rapides -->
+    <div id="sms-examples" style="margin-top:4px">
+      <div style="font-size:12px;font-weight:600;color:#73777f;margin-bottom:8px;text-transform:uppercase;letter-spacing:.06em">Exemples d'arnaques fréquentes</div>
+      <div style="display:flex;flex-direction:column;gap:8px">
+        <button onclick="SMSScreen.loadExample('chronopost')" style="background:#fff;border:1px solid #eceef1;border-radius:12px;padding:10px 12px;text-align:left;cursor:pointer;display:flex;align-items:center;gap:10px">
+          <span class="material-symbols-outlined" style="color:#f59e0b;font-size:20px;flex-shrink:0">local_shipping</span>
+          <div><div style="font-size:13px;font-weight:600;color:#191c1e">Faux Chronopost / La Poste</div><div style="font-size:11px;color:#73777f">Colis retenu, frais à payer</div></div>
+        </button>
+        <button onclick="SMSScreen.loadExample('caf')" style="background:#fff;border:1px solid #eceef1;border-radius:12px;padding:10px 12px;text-align:left;cursor:pointer;display:flex;align-items:center;gap:10px">
+          <span class="material-symbols-outlined" style="color:#dc2626;font-size:20px;flex-shrink:0">account_balance</span>
+          <div><div style="font-size:13px;font-weight:600;color:#191c1e">Fausse CAF / Ameli</div><div style="font-size:11px;color:#73777f">Remboursement ou régularisation</div></div>
+        </button>
+        <button onclick="SMSScreen.loadExample('amende')" style="background:#fff;border:1px solid #eceef1;border-radius:12px;padding:10px 12px;text-align:left;cursor:pointer;display:flex;align-items:center;gap:10px">
+          <span class="material-symbols-outlined" style="color:#7c3aed;font-size:20px;flex-shrink:0">gavel</span>
+          <div><div style="font-size:13px;font-weight:600;color:#191c1e">Fausse amende / Radars</div><div style="font-size:11px;color:#73777f">Paiement urgent requis</div></div>
+        </button>
+      </div>
+    </div>
+
+  </div>
+</div>
+
+<!-- ════════════════════════════════════
+     BOTTOM NAV
+════════════════════════════════════ -->
+<nav id="bottom-nav" class="hidden">
+  <button class="nav-tab" data-tab="home" onclick="Nav.go('home')">
+    <span class="material-symbols-outlined">home</span>
+    Accueil
+  </button>
+  <button class="nav-tab" data-tab="history" onclick="Nav.go('history')">
+    <span class="material-symbols-outlined">history</span>
+    Historique
+  </button>
+  <button class="nav-scan press" onclick="Nav.go('scanner')">
+    <span class="material-symbols-outlined">qr_code_scanner</span>
+  </button>
+  <button class="nav-tab" data-tab="sms" onclick="Nav.go('sms')">
+    <span class="material-symbols-outlined">sms</span>
+    SMS
+  </button>
+  <button class="nav-tab" data-tab="settings" onclick="Nav.go('settings')">
+    <span class="material-symbols-outlined">settings</span>
+    Paramètres
+  </button>
+</nav>
+
+<!-- Toast -->
+<div id="toast"></div>
+
+<!-- ════════════════════════════════════
+     MODAL — Confirmation
+════════════════════════════════════ -->
+<div id="modal-confirm" class="modal-overlay">
+  <div class="modal-sheet">
+    <div class="modal-handle"></div>
+    <p id="modal-confirm-text" style="font-size:15px;font-weight:500;color:#191c1e;text-align:center;margin-bottom:24px;line-height:1.5"></p>
+    <div style="display:flex;gap:10px">
+      <button id="modal-confirm-cancel" style="flex:1;padding:14px;border-radius:14px;border:1.5px solid #eceef1;background:#fff;font-size:14px;font-weight:600;color:#73777f;cursor:pointer">Annuler</button>
+      <button id="modal-confirm-ok" style="flex:1;padding:14px;border-radius:14px;border:none;background:#ba1a1a;color:#fff;font-size:14px;font-weight:700;cursor:pointer">Confirmer</button>
+    </div>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════
+     MODAL — Authentification
+════════════════════════════════════ -->
+<div id="modal-auth" class="modal-overlay" onclick="if(event.target===this)Modal.close('auth')">
+  <div class="modal-sheet">
+    <div class="modal-handle"></div>
+    <div style="display:flex;gap:0;margin-bottom:20px;border-radius:12px;background:#eceef1;padding:4px">
+      <button id="auth-tab-login" onclick="Auth.switchTab('login')" style="flex:1;padding:9px;border:none;border-radius:9px;background:#fff;font-size:13px;font-weight:700;color:#191c1e;cursor:pointer;transition:all .15s">Connexion</button>
+      <button id="auth-tab-register" onclick="Auth.switchTab('register')" style="flex:1;padding:9px;border:none;border-radius:9px;background:none;font-size:13px;font-weight:700;color:#73777f;cursor:pointer;transition:all .15s">Inscription</button>
+    </div>
+    <div style="margin-bottom:14px">
+      <label class="field-label">Email</label>
+      <input id="auth-email" class="field-input" type="email" placeholder="votre@email.com"/>
+    </div>
+    <div style="margin-bottom:20px">
+      <label class="field-label">Mot de passe</label>
+      <input id="auth-password" class="field-input" type="password" placeholder="••••••••" minlength="6"/>
+    </div>
+    <div id="auth-register-extra" style="display:none;margin-bottom:20px">
+      <label class="field-label">Nom d'affichage</label>
+      <input id="auth-name" class="field-input" type="text" placeholder="Votre nom" maxlength="40"/>
+    </div>
+    <button id="auth-submit-btn" class="btn btn-primary btn-full" onclick="Auth.submit()">
+      <span class="material-symbols-outlined" style="font-size:18px">login</span>
+      <span id="auth-submit-label">Se connecter</span>
+    </button>
+    <div id="auth-error" style="display:none;margin-top:12px;padding:10px 14px;border-radius:10px;background:#ffdad6;color:#ba1a1a;font-size:13px;text-align:center"></div>
+    <button onclick="Modal.close('auth')" style="margin-top:10px;width:100%;padding:12px;border:none;background:none;color:#73777f;font-size:14px;cursor:pointer">Annuler</button>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════
+     MODAL — Sauvegarder lien certifié
+════════════════════════════════════ -->
+<div id="modal-save-link" class="modal-overlay" onclick="if(event.target===this)Modal.close('save-link')">
+  <div class="modal-sheet">
+    <div class="modal-handle"></div>
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:20px">
+      <div style="width:40px;height:40px;border-radius:12px;background:#d4f4e2;display:flex;align-items:center;justify-content:center">
+        <span class="material-symbols-outlined" style="color:#1a7a40;font-size:22px;font-variation-settings:'FILL' 1">verified_user</span>
+      </div>
+      <div>
+        <div style="font-family:'Manrope',sans-serif;font-weight:800;font-size:16px;color:#191c1e">Certifier ce lien</div>
+        <div id="save-link-domain" style="font-size:12px;color:#73777f"></div>
+      </div>
+    </div>
+    <div style="margin-bottom:14px">
+      <label class="field-label">Étiquette (optionnel)</label>
+      <input id="save-link-label" class="field-input" type="text" placeholder="ex: Mon site de banque" maxlength="60"/>
+    </div>
+    <div style="margin-bottom:24px">
+      <label class="field-label">Note (optionnel)</label>
+      <input id="save-link-note" class="field-input" type="text" placeholder="ex: Vérifié le 08/04/2026" maxlength="120"/>
+    </div>
+    <button class="btn btn-primary btn-full" onclick="CertifiedLinks.save()">
+      <span class="material-symbols-outlined" style="font-size:18px">cloud_upload</span>Sauvegarder
+    </button>
+    <button onclick="Modal.close('save-link')" style="margin-top:10px;width:100%;padding:12px;border:none;background:none;color:#73777f;font-size:14px;cursor:pointer">Annuler</button>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════
+     MODAL — Admin : ajouter lien certifié
+════════════════════════════════════ -->
+<div id="modal-admin-add" class="modal-overlay" onclick="if(event.target===this)Modal.close('admin-add')">
+  <div class="modal-sheet">
+    <div class="modal-handle"></div>
+    <div style="display:flex;align-items:center;gap:10px;margin-bottom:20px">
+      <div style="width:40px;height:40px;border-radius:12px;background:#d4f4e2;display:flex;align-items:center;justify-content:center">
+        <span class="material-symbols-outlined" style="color:#1a7a40;font-size:22px;font-variation-settings:'FILL' 1">add_link</span>
+      </div>
+      <div>
+        <div style="font-family:'Manrope',sans-serif;font-weight:800;font-size:16px;color:#191c1e">Certifier un lien</div>
+        <div style="font-size:12px;color:#73777f">Ajout à la liste officielle certifiée</div>
+      </div>
+    </div>
+    <div style="margin-bottom:14px">
+      <label class="field-label">URL <span style="color:#ba1a1a">*</span></label>
+      <input id="admin-add-url" class="field-input" type="url" placeholder="https://exemple.com" maxlength="500"/>
+    </div>
+    <div style="margin-bottom:14px">
+      <label class="field-label">Étiquette (optionnel)</label>
+      <input id="admin-add-label" class="field-input" type="text" placeholder="ex: Site officiel gouvernement" maxlength="60"/>
+    </div>
+    <div style="margin-bottom:14px">
+      <label class="field-label">Catégorie</label>
+      <div id="admin-cat-chips" style="display:flex;flex-wrap:wrap;gap:8px;margin-top:6px">
+        <button type="button" data-cat="bank"   onclick="AdminScreen.selectCat('bank')"   class="cat-chip" style="display:flex;align-items:center;gap:5px;padding:6px 12px;border-radius:99px;font-size:12px;font-weight:600;border:2px solid #dbeafe;background:#dbeafe;color:#1a56db;cursor:pointer"><span class="material-symbols-outlined" style="font-size:14px">account_balance</span>Banque</button>
+        <button type="button" data-cat="gov"    onclick="AdminScreen.selectCat('gov')"    class="cat-chip" style="display:flex;align-items:center;gap:5px;padding:6px 12px;border-radius:99px;font-size:12px;font-weight:600;border:2px solid #eceef1;background:#fff;color:#73777f;cursor:pointer"><span class="material-symbols-outlined" style="font-size:14px">gavel</span>Gouv.</button>
+        <button type="button" data-cat="shop"   onclick="AdminScreen.selectCat('shop')"   class="cat-chip" style="display:flex;align-items:center;gap:5px;padding:6px 12px;border-radius:99px;font-size:12px;font-weight:600;border:2px solid #eceef1;background:#fff;color:#73777f;cursor:pointer"><span class="material-symbols-outlined" style="font-size:14px">shopping_cart</span>E-com.</button>
+        <button type="button" data-cat="health" onclick="AdminScreen.selectCat('health')" class="cat-chip" style="display:flex;align-items:center;gap:5px;padding:6px 12px;border-radius:99px;font-size:12px;font-weight:600;border:2px solid #eceef1;background:#fff;color:#73777f;cursor:pointer"><span class="material-symbols-outlined" style="font-size:14px">local_hospital</span>Santé</button>
+        <button type="button" data-cat="edu"    onclick="AdminScreen.selectCat('edu')"    class="cat-chip" style="display:flex;align-items:center;gap:5px;padding:6px 12px;border-radius:99px;font-size:12px;font-weight:600;border:2px solid #eceef1;background:#fff;color:#73777f;cursor:pointer"><span class="material-symbols-outlined" style="font-size:14px">school</span>Éduc.</button>
+        <button type="button" data-cat="tech"   onclick="AdminScreen.selectCat('tech')"   class="cat-chip" style="display:flex;align-items:center;gap:5px;padding:6px 12px;border-radius:99px;font-size:12px;font-weight:600;border:2px solid #eceef1;background:#fff;color:#73777f;cursor:pointer"><span class="material-symbols-outlined" style="font-size:14px">devices</span>Tech</button>
+        <button type="button" data-cat="media"  onclick="AdminScreen.selectCat('media')"  class="cat-chip" style="display:flex;align-items:center;gap:5px;padding:6px 12px;border-radius:99px;font-size:12px;font-weight:600;border:2px solid #eceef1;background:#fff;color:#73777f;cursor:pointer"><span class="material-symbols-outlined" style="font-size:14px">newspaper</span>Médias</button>
+        <button type="button" data-cat="other"  onclick="AdminScreen.selectCat('other')"  class="cat-chip" style="display:flex;align-items:center;gap:5px;padding:6px 12px;border-radius:99px;font-size:12px;font-weight:600;border:2px solid #eceef1;background:#fff;color:#73777f;cursor:pointer"><span class="material-symbols-outlined" style="font-size:14px">category</span>Autre</button>
+      </div>
+      <input type="hidden" id="admin-add-category" value="bank"/>
+    </div>
+    <div style="margin-bottom:24px">
+      <label class="field-label">Score de confiance (0–100)</label>
+      <input id="admin-add-score" class="field-input" type="number" min="0" max="100" value="95"/>
+    </div>
+    <button class="btn btn-primary btn-full" onclick="AdminScreen.addLink()">
+      <span class="material-symbols-outlined" style="font-size:18px">verified_user</span>Certifier globalement
+    </button>
+    <button onclick="Modal.close('admin-add')" style="margin-top:10px;width:100%;padding:12px;border:none;background:none;color:#73777f;font-size:14px;cursor:pointer">Annuler</button>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════
+     MODAL — Édition profil
+════════════════════════════════════ -->
+<div id="modal-profile" class="modal-overlay" onclick="if(event.target===this)Modal.close('profile')">
+  <div class="modal-sheet">
+    <div class="modal-handle"></div>
+    <div style="font-family:'Manrope',sans-serif;font-weight:800;font-size:18px;color:#191c1e;margin-bottom:20px">Modifier le profil</div>
+    <div style="margin-bottom:14px">
+      <label class="field-label">Nom d'affichage</label>
+      <input id="prof-name" class="field-input" type="text" placeholder="Votre nom" maxlength="40"/>
+    </div>
+    <div style="margin-bottom:24px">
+      <label class="field-label">Email</label>
+      <input id="prof-email" class="field-input" type="email" placeholder="votre@email.com" maxlength="80"/>
+    </div>
+    <button class="btn btn-primary btn-full" onclick="Profile.save()">
+      <span class="material-symbols-outlined" style="font-size:18px">check</span>Enregistrer
+    </button>
+    <button onclick="Modal.close('profile')" style="margin-top:10px;width:100%;padding:12px;border:none;background:none;color:#73777f;font-size:14px;cursor:pointer">Annuler</button>
+  </div>
+</div>
+
+<!-- ════════════════════════════════════
+     MODAL — Clé API VirusTotal
+════════════════════════════════════ -->
+<div id="modal-apikey" class="modal-overlay" onclick="if(event.target===this)Modal.close('apikey')">
+  <div class="modal-sheet">
+    <div class="modal-handle"></div>
+    <div style="font-family:'Manrope',sans-serif;font-weight:800;font-size:18px;color:#191c1e;margin-bottom:6px">Clé API VirusTotal</div>
+    <p style="font-size:13px;color:#73777f;margin-bottom:20px">Activez l'analyse réelle en temps réel. Votre clé est stockée localement et n'est jamais envoyée ailleurs.</p>
+    <div style="margin-bottom:24px">
+      <label class="field-label">Clé API (gratuite sur virustotal.com)</label>
+      <input id="vt-key-input" class="field-input" type="password" placeholder="Collez votre clé ici…"/>
+    </div>
+    <button class="btn btn-primary btn-full" onclick="Profile.saveApiKey()">
+      <span class="material-symbols-outlined" style="font-size:18px">key</span>Activer l'analyse réelle
+    </button>
+    <button onclick="Profile.clearApiKey()" style="margin-top:10px;width:100%;padding:12px;border:none;background:none;color:#ba1a1a;font-size:13px;cursor:pointer">Supprimer la clé</button>
+    <button onclick="Modal.close('apikey')" style="margin-top:4px;width:100%;padding:12px;border:none;background:none;color:#73777f;font-size:14px;cursor:pointer">Annuler</button>
+  </div>
+</div>
+
+</div><!-- #app -->
+
+<script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.min.js"></script>
+<script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2/dist/umd/supabase.min.js"></script>
+<script>
+'use strict';
+
+/* ══════════════════════════════════════════
+   AUTO-UPDATE — vide les caches automatiquement
+   à chaque nouvelle version installée
+══════════════════════════════════════════ */
+(function() {
+  const VERSION = 'qrc-build-202604191815'; // ← mis à jour à chaque build
+  const stored  = localStorage.getItem('_qrc_build');
+
+  if (stored === VERSION) return; // même version → rien à faire
+
+  // Nouvelle version détectée → vider tous les caches SW
+  localStorage.setItem('_qrc_build', VERSION);
+
+  if (!('caches' in window)) return;
+
+  caches.keys().then(keys => {
+    return Promise.all(keys.map(k => caches.delete(k)));
+  }).then(() => {
+    if ('serviceWorker' in navigator) {
+      return navigator.serviceWorker.getRegistrations()
+        .then(regs => Promise.all(regs.map(r => r.unregister())));
+    }
+  }).then(() => {
+    // Recharger uniquement si c'était une mise à jour (pas le premier lancement)
+    if (stored !== null) {
+      location.reload(true);
+    }
+  });
+})();
+
+/* ══════════════════════════════════════════
+   CATÉGORIES — liens certifiés
+══════════════════════════════════════════ */
+const CATEGORIES = {
+  bank:   { label: 'Banque & Finance',  icon: 'account_balance', color: '#1a56db', bg: '#dbeafe' },
+  gov:    { label: 'Gouvernement',       icon: 'gavel',           color: '#7a4f00', bg: '#fef3c7' },
+  shop:   { label: 'E-commerce',         icon: 'shopping_cart',   color: '#6d28d9', bg: '#ede9fe' },
+  health: { label: 'Santé',              icon: 'local_hospital',  color: '#ba1a1a', bg: '#ffdad6' },
+  edu:    { label: 'Éducation',          icon: 'school',          color: '#0d7490', bg: '#e0f2fe' },
+  tech:   { label: 'Tech & Services',   icon: 'devices',         color: '#1a7a40', bg: '#d4f4e2' },
+  media:  { label: 'Médias',             icon: 'newspaper',       color: '#43474e', bg: '#eceef1' },
+  other:  { label: 'Autre',              icon: 'category',        color: '#73777f', bg: '#f0f2f5' }
+};
+
+/* ══════════════════════════════════════════
+   OPEN LINK — ouvre dans le navigateur système
+   (Capacitor WebView ne supporte pas _blank)
+══════════════════════════════════════════ */
+function openLink(url) {
+  if (!url) return;
+  // _system = navigateur externe sur Android/iOS (Capacitor + Cordova)
+  // Sur browser classique, _system est ignoré et ouvre un onglet normal
+  window.open(url, '_system');
+}
+
+/* ══════════════════════════════════════════
+   STORE — évite JSON inline dans les onclick
+══════════════════════════════════════════ */
+const Store = {
+  _d:    {},
+  _keys: [], // ordre d'insertion pour nettoyage FIFO
+  _MAX:  500,
+  set(it) {
+    const id = it.id ?? Date.now();
+    if (!this._d[id]) this._keys.push(id);   // nouvel id seulement
+    this._d[id] = it;
+    // Si on dépasse la limite, supprimer les plus anciens
+    while (this._keys.length > this._MAX) {
+      const old = this._keys.shift();
+      delete this._d[old];
+    }
+    return id;
+  },
+  get(id) { return this._d[id] || null; },
+  clear() { this._d = {}; this._keys = []; }
+};
+
+/* ══════════════════════════════════════════
+   STORAGE localStorage
+══════════════════════════════════════════ */
+const DB = {
+  history() { try{ return JSON.parse(localStorage.getItem('qrc_h')||'[]'); }catch{ return []; } },
+  addScan(e) {
+    const h = this.history();
+    h.unshift({...e, id: Date.now(), date: new Date().toISOString()});
+    localStorage.setItem('qrc_h', JSON.stringify(h.slice(0,300)));
+  },
+  clearHistory() { localStorage.removeItem('qrc_h'); },
+  getSetting(k, def) {
+    try { const s = JSON.parse(localStorage.getItem('qrc_s')||'{}'); return k in s ? s[k] : def; }
+    catch { return def; }
+  },
+  setSetting(k, v) {
+    try { const s = JSON.parse(localStorage.getItem('qrc_s')||'{}'); s[k]=v; localStorage.setItem('qrc_s', JSON.stringify(s)); }
+    catch {}
+  },
+  getProfile() { try { return JSON.parse(localStorage.getItem('qrc_p')||'{}'); } catch { return {}; } },
+  setProfile(p) { localStorage.setItem('qrc_p', JSON.stringify(p)); },
+  getApiKey() { return localStorage.getItem('qrc_vt') || ''; },
+  setApiKey(k) { if (k) localStorage.setItem('qrc_vt', k); else localStorage.removeItem('qrc_vt'); }
+};
+
+/* ══════════════════════════════════════════
+   TOAST
+══════════════════════════════════════════ */
+let _toastTimer;
+function showToast(msg, dur=2500) {
+  const t = document.getElementById('toast');
+  t.textContent = msg;
+  t.classList.add('show');
+  clearTimeout(_toastTimer);
+  _toastTimer = setTimeout(() => t.classList.remove('show'), dur);
+}
+
+/* ══════════════════════════════════════════
+   UTILITAIRES — Sécurité XSS
+══════════════════════════════════════════ */
+// Échappe toutes les données avant injection dans innerHTML
+function esc(s) {
+  return String(s ?? '')
+    .replace(/&/g, '&amp;')
+    .replace(/</g, '&lt;')
+    .replace(/>/g, '&gt;')
+    .replace(/"/g, '&quot;')
+    .replace(/'/g, '&#x27;');
+}
+
+/* ══════════════════════════════════════════
+   SUPABASE — Client & Auth
+══════════════════════════════════════════ */
+const SUPA_URL = 'https://upmprwazfuxvbuvzdqyk.supabase.co';
+const SUPA_KEY = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InVwbXByd2F6ZnV4dmJ1dnpkcXlrIiwicm9sZSI6ImFub24iLCJpYXQiOjE3NzU3NTc3NTcsImV4cCI6MjA5MTMzMzc1N30.IXBxKj-HpQEGKzqJcijBy06IjgZ8LDTD1btVKjEBAKI';
+
+let _supa = null;
+function getSupa() {
+  if (!_supa) _supa = window.supabase.createClient(SUPA_URL, SUPA_KEY);
+  return _supa;
+}
+
+/* ══════════════════════════════════════════
+   AUTH — Connexion / Inscription
+══════════════════════════════════════════ */
+const Auth = {
+  _tab: 'login',
+  _currentUser: null,
+
+  get user() { return this._currentUser; },
+
+  _isAdmin: false,
+  get isAdmin() { return this._isAdmin; },
+
+  async init() {
+    const supa = getSupa();
+    const { data } = await supa.auth.getSession();
+    this._currentUser = data?.session?.user || null;
+    if (this._currentUser) await this._checkAdmin();
+
+    supa.auth.onAuthStateChange(async (_event, session) => {
+      this._currentUser = session?.user || null;
+      this._isAdmin = false;
+      if (this._currentUser) await this._checkAdmin();
+      this._onUserChange();
+    });
+    this._onUserChange();
+  },
+
+  async _checkAdmin() {
+    try {
+      const { data } = await getSupa()
+        .from('user_roles')
+        .select('role')
+        .eq('user_id', this._currentUser.id)
+        .maybeSingle();
+      this._isAdmin = data?.role === 'admin';
+    } catch(e) {
+      console.error('[Auth._checkAdmin]', e);
+      this._isAdmin = false;
+    }
+  },
+
+  _onUserChange() {
+    Profile.refresh();
+    CertifiedLinks.onAuthChange();
+    AdminScreen.onAuthChange();
+    if (!this._currentUser) Nav.go('home');
+  },
+
+  switchTab(tab) {
+    this._tab = tab;
+    const isLogin = tab === 'login';
+    document.getElementById('auth-tab-login').style.background   = isLogin ? '#fff' : 'none';
+    document.getElementById('auth-tab-login').style.color        = isLogin ? '#191c1e' : '#73777f';
+    document.getElementById('auth-tab-register').style.background = isLogin ? 'none' : '#fff';
+    document.getElementById('auth-tab-register').style.color      = isLogin ? '#73777f' : '#191c1e';
+    document.getElementById('auth-submit-label').textContent      = isLogin ? 'Se connecter' : 'Créer le compte';
+    document.getElementById('auth-register-extra').style.display  = isLogin ? 'none' : 'block';
+    document.getElementById('auth-error').style.display = 'none';
+  },
+
+  async submit() {
+    const email    = document.getElementById('auth-email')?.value.trim();
+    const password = document.getElementById('auth-password')?.value;
+    const name     = document.getElementById('auth-name')?.value.trim();
+    const errEl    = document.getElementById('auth-error');
+    const btn      = document.getElementById('auth-submit-btn');
+    if (!email || !password) { this._showError('Remplissez tous les champs'); return; }
+
+    btn.disabled = true;
+    btn.style.opacity = '0.6';
+    errEl.style.display = 'none';
+
+    try {
+      const supa = getSupa();
+      let error;
+      if (this._tab === 'login') {
+        ({ error } = await supa.auth.signInWithPassword({ email, password }));
+      } else {
+        ({ error } = await supa.auth.signUp({
+          email, password,
+          options: { data: { name: name || email.split('@')[0] } }
+        }));
+        if (!error) {
+          if (name) DB.setProfile({ name, email });
+          showToast('Compte créé ! Vérifiez votre email.');
+        }
+      }
+      if (error) throw error;
+      Modal.close('auth');
+      showToast(this._tab === 'login' ? 'Connecté !' : 'Inscription réussie !');
+    } catch (e) {
+      this._showError(this._friendlyError(e.message));
+    } finally {
+      btn.disabled = false;
+      btn.style.opacity = '1';
+    }
+  },
+
+  async signOut() {
+    try {
+      await Promise.race([
+        getSupa().auth.signOut(),
+        new Promise((_, r) => setTimeout(() => r(new Error('timeout')), 4000))
+      ]);
+    } catch {
+      // Déconnexion locale si le serveur est injoignable
+      await getSupa().auth.signOut({ scope: 'local' });
+    }
+    showToast('Déconnecté');
+  },
+
+  _showError(msg) {
+    const el = document.getElementById('auth-error');
+    if (el) { el.textContent = msg; el.style.display = 'block'; }
+  },
+
+  _friendlyError(msg) {
+    if (msg.includes('Invalid login')) return 'Email ou mot de passe incorrect';
+    if (msg.includes('already registered')) return 'Cet email est déjà utilisé';
+    if (msg.includes('Password should')) return 'Mot de passe trop court (6 caractères min)';
+    if (msg.includes('Unable to validate')) return 'Email invalide';
+    return msg;
+  }
+};
+
+/* ══════════════════════════════════════════
+   LIENS CERTIFIÉS — CRUD Supabase
+══════════════════════════════════════════ */
+const CertifiedLinks = {
+  _current: null, // données du résultat en cours
+
+  onAuthChange() {
+    if (Nav.current === 'certified') this.render();
+    this._updateSettingsAuthRow();
+  },
+
+  openSave() {
+    if (!Auth.user) {
+      showToast('Connectez-vous d\'abord');
+      Modal.open('auth');
+      return;
+    }
+    const data = this._current;
+    if (!data) {
+      showToast('Erreur : aucun lien à sauvegarder. Relancez une analyse.');
+      return;
+    }
+    document.getElementById('save-link-domain').textContent = data.domain || data.url;
+    document.getElementById('save-link-label').value = '';
+    document.getElementById('save-link-note').value  = '';
+    Modal.open('save-link');
+  },
+
+  async save() {
+    if (!Auth.user) {
+      showToast('Vous devez être connecté pour sauvegarder.');
+      return;
+    }
+    if (!this._current) {
+      showToast('Erreur : données manquantes. Relancez une analyse.');
+      return;
+    }
+
+    // Feedback visuel pendant l'enregistrement
+    const btn = document.querySelector('#modal-save-link .btn-primary');
+    if (btn) { btn.disabled = true; btn.innerHTML = '<span class="material-symbols-outlined" style="font-size:18px">hourglass_top</span>Enregistrement…'; }
+
+    const label = document.getElementById('save-link-label')?.value.trim();
+    const note  = document.getElementById('save-link-note')?.value.trim();
+    const data  = this._current;
+
+    try {
+      const { error } = await getSupa().from('certified_links').insert({
+        user_id:  Auth.user.id,
+        url:      data.url,
+        domain:   data.domain,
+        score:    data.score,
+        source:   data.source || 'local',
+        label:    label || null,
+        note:     note  || null,
+        global:   Auth.isAdmin,
+        category: data.certCategory || 'other'
+      });
+
+      if (error) {
+        console.error('[CertifiedLinks.save] Supabase error:', error);
+        showToast('Erreur : ' + error.message);
+        return;
+      }
+
+      Modal.close('save-link');
+      showToast(Auth.isAdmin ? 'Lien certifié globalement !' : 'Lien sauvegardé dans vos favoris !');
+      DB.setSetting('certified_dirty', true);
+    } catch(e) {
+      console.error('[CertifiedLinks.save] Exception:', e);
+      showToast('Erreur réseau : vérifiez votre connexion.');
+    } finally {
+      if (btn) { btn.disabled = false; btn.innerHTML = '<span class="material-symbols-outlined" style="font-size:18px">cloud_upload</span>Sauvegarder'; }
+    }
+  },
+
+  async render() {
+    const listEl   = document.getElementById('certified-list');
+    const wallEl   = document.getElementById('certified-login-wall');
+    const countEl  = document.getElementById('certified-count');
+
+    if (!Auth.user) {
+      if (wallEl)  wallEl.style.display   = 'flex';
+      if (listEl)  listEl.style.display   = 'none';
+      if (countEl) countEl.textContent    = '0';
+      return;
+    }
+
+    if (wallEl)  wallEl.style.display = 'none';
+    if (listEl)  listEl.style.display = 'flex';
+    if (listEl)  listEl.innerHTML = '<div style="text-align:center;padding:32px;color:#73777f">Chargement…</div>';
+
+    const { data, error } = await getSupa()
+      .from('certified_links')
+      .select('*')
+      .eq('user_id', Auth.user.id)
+      .eq('global', false)
+      .order('created_at', { ascending: false });
+
+    if (error) { listEl.innerHTML = '<div style="padding:20px;color:#ba1a1a">Erreur de chargement</div>'; return; }
+
+    if (countEl) countEl.textContent = data.length;
+
+    if (!data.length) {
+      listEl.innerHTML = `<div style="text-align:center;padding:48px 0;color:#73777f;font-size:14px">
+        <span class="material-symbols-outlined" style="font-size:48px;display:block;margin-bottom:12px;color:#b0b5bf">verified</span>
+        Aucun lien certifié sauvegardé.<br>
+        <span style="font-size:13px">Scannez un QR code et certifiez-le !</span>
+      </div>`;
+      return;
+    }
+
+    listEl.innerHTML = data.map(item => {
+      const date = new Date(item.created_at).toLocaleDateString('fr-FR',{day:'2-digit',month:'short',year:'numeric'});
+      return `<div style="background:#fff;border:1px solid #eceef1;border-radius:16px;padding:14px 16px">
+        <div style="display:flex;align-items:flex-start;gap:12px">
+          <div style="width:40px;height:40px;border-radius:12px;background:#d4f4e2;display:flex;align-items:center;justify-content:center;flex-shrink:0">
+            <span class="material-symbols-outlined" style="color:#1a7a40;font-size:20px;font-variation-settings:'FILL' 1">verified_user</span>
+          </div>
+          <div style="flex:1;min-width:0">
+            <div style="font-size:14px;font-weight:700;color:#191c1e;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${item.label || item.domain || item.url}</div>
+            <div style="font-size:12px;color:#73777f;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-top:2px">${item.url}</div>
+            ${item.note ? `<div style="font-size:12px;color:#436084;margin-top:4px;font-style:italic">${item.note}</div>` : ''}
+            <div style="display:flex;align-items:center;justify-content:space-between;margin-top:8px">
+              <div style="display:flex;gap:6px">
+                <span style="background:#d4f4e2;color:#1a7a40;font-size:11px;font-weight:700;padding:2px 8px;border-radius:6px">Score ${item.score ?? '—'}</span>
+                ${item.source === 'virustotal' ? '<span style="background:#e8f0fe;color:#1a56db;font-size:11px;font-weight:700;padding:2px 8px;border-radius:6px">VirusTotal</span>' : ''}
+              </div>
+              <span style="font-size:11px;color:#b0b5bf">${date}</span>
+            </div>
+          </div>
+          <button onclick="CertifiedLinks.delete('${item.id}')" style="background:none;border:none;cursor:pointer;padding:4px;flex-shrink:0">
+            <span class="material-symbols-outlined" style="color:#b0b5bf;font-size:20px">delete</span>
+          </button>
+        </div>
+      </div>`;
+    }).join('');
+  },
+
+  async delete(id) {
+    if (!await confirmModal('Supprimer ce lien certifié ?')) return;
+    const { error } = await getSupa().from('certified_links').delete().eq('id', id);
+    if (error) { showToast('Erreur de suppression'); return; }
+    showToast('Lien supprimé');
+    this.render();
+  },
+
+  _updateSettingsAuthRow() {
+    const row      = document.getElementById('settings-auth-row');
+    const btnOut   = document.getElementById('btn-signout');
+    const btnIn    = document.getElementById('btn-signin');
+    if (!row) return;
+
+    if (Auth.user) {
+      const adminBadge = Auth.isAdmin
+        ? '<span style="background:#fef3c7;color:#7a4f00;font-size:11px;font-weight:700;padding:3px 8px;border-radius:6px;margin-left:6px">ADMIN</span>'
+        : '';
+      const adminBtn = Auth.isAdmin
+        ? `<div class="press" onclick="Nav.go('admin')" style="display:flex;align-items:center;gap:12px;padding:14px 16px;border-top:1px solid #f0f2f5;cursor:pointer">
+            <span class="material-symbols-outlined" style="color:#7a4f00;font-size:22px">admin_panel_settings</span>
+            <div style="flex:1;font-size:14px;font-weight:500;color:#191c1e">Panel Admin</div>
+            <span class="material-symbols-outlined" style="color:#b0b5bf;font-size:20px">chevron_right</span>
+           </div>` : '';
+      row.innerHTML = `
+        <div style="display:flex;align-items:center;gap:12px">
+          <span class="material-symbols-outlined" style="color:#1a7a40;font-size:22px">verified_user</span>
+          <div style="flex:1">
+            <div style="font-size:14px;font-weight:500;color:#191c1e;display:flex;align-items:center">Connecté${adminBadge}</div>
+            <div style="font-size:12px;color:#73777f;margin-top:2px">${Auth.user.email}</div>
+          </div>
+        </div>
+        ${adminBtn}`;
+      if (btnOut) { btnOut.style.display = 'flex'; }
+      if (btnIn)  { btnIn.style.display  = 'none'; }
+    } else {
+      row.innerHTML = `
+        <div style="display:flex;align-items:center;gap:12px">
+          <span class="material-symbols-outlined" style="color:#73777f;font-size:22px">person_off</span>
+          <div style="flex:1;font-size:14px;font-weight:500;color:#191c1e">Non connecté</div>
+        </div>`;
+      if (btnOut) { btnOut.style.display = 'none'; }
+      if (btnIn)  { btnIn.style.display  = 'flex'; }
+    }
+  }
+};
+
+/* ══════════════════════════════════════════
+   ÉCRAN AUTH (LOGIN / INSCRIPTION)
+══════════════════════════════════════════ */
+const AuthScreen = {
+  _tab: 'login',
+  _pwdVisible: false,
+
+  switchTab(tab) {
+    this._tab = tab;
+    const isLogin = tab === 'login';
+
+    // Onglets
+    const tLogin = document.getElementById('screen-tab-login');
+    const tReg   = document.getElementById('screen-tab-register');
+    if (tLogin) { tLogin.style.background = isLogin ? '#fff' : 'none'; tLogin.style.color = isLogin ? '#191c1e' : '#73777f'; tLogin.style.boxShadow = isLogin ? '0 1px 4px rgba(0,0,0,.08)' : 'none'; }
+    if (tReg)   { tReg.style.background   = isLogin ? 'none' : '#fff'; tReg.style.color   = isLogin ? '#73777f' : '#191c1e'; tReg.style.boxShadow   = isLogin ? 'none' : '0 1px 4px rgba(0,0,0,.08)'; }
+
+    // Champs
+    const nameField = document.getElementById('screen-name-field');
+    const pwdHint   = document.getElementById('screen-pwd-hint');
+    if (nameField) nameField.style.display = isLogin ? 'none' : 'block';
+    if (pwdHint)   pwdHint.style.display   = isLogin ? 'none' : 'block';
+
+    // Bouton
+    const icon  = document.getElementById('screen-submit-icon');
+    const label = document.getElementById('screen-submit-label');
+    if (icon)  icon.textContent  = isLogin ? 'login' : 'person_add';
+    if (label) label.textContent = isLogin ? 'Se connecter' : 'Créer mon compte';
+
+    // Reset erreur
+    const err = document.getElementById('screen-auth-error');
+    if (err) err.style.display = 'none';
+  },
+
+  togglePwd() {
+    this._pwdVisible = !this._pwdVisible;
+    const inp = document.getElementById('screen-password');
+    const eye = document.getElementById('pwd-eye');
+    if (inp) inp.type = this._pwdVisible ? 'text' : 'password';
+    if (eye) eye.textContent = this._pwdVisible ? 'visibility_off' : 'visibility';
+  },
+
+  async submit() {
+    const email    = document.getElementById('screen-email')?.value.trim();
+    const password = document.getElementById('screen-password')?.value;
+    const name     = document.getElementById('screen-name')?.value.trim();
+    const errEl    = document.getElementById('screen-auth-error');
+    const btn      = document.getElementById('screen-submit-btn');
+
+    if (!email || !password) { this._showError('Remplissez tous les champs'); return; }
+    if (password.length < 6) { this._showError('Mot de passe trop court (6 caractères min)'); return; }
+
+    btn.disabled = true; btn.style.opacity = '0.6';
+    if (errEl) errEl.style.display = 'none';
+
+    try {
+      let error;
+      if (this._tab === 'login') {
+        ({ error } = await getSupa().auth.signInWithPassword({ email, password }));
+      } else {
+        ({ error } = await getSupa().auth.signUp({
+          email, password,
+          options: { data: { name: name || email.split('@')[0] } }
+        }));
+        if (!error && name) DB.setProfile({ name, email });
+      }
+      if (error) throw error;
+
+      // Succès → aller à l'accueil
+      Nav.go('home');
+      Nav.stack = ['home'];
+      showToast(this._tab === 'login' ? 'Connecté !' : 'Compte créé avec succès !');
+    } catch(e) {
+      this._showError(Auth._friendlyError(e.message));
+    } finally {
+      btn.disabled = false; btn.style.opacity = '1';
+    }
+  },
+
+  _showError(msg) {
+    const el = document.getElementById('screen-auth-error');
+    if (el) { el.textContent = msg; el.style.display = 'block'; }
+  }
+};
+
+/* ══════════════════════════════════════════
+   ADMIN SCREEN
+══════════════════════════════════════════ */
+const AdminScreen = {
+  _filter: 'all',
+  _data: [],
+
+  onAuthChange() {
+    // Ajoute/retire 'admin' des écrans sans nav
+    if (Auth.isAdmin) {
+      Nav.noNav.delete('admin');
+    } else {
+      Nav.noNav.add('admin');
+    }
+  },
+
+  async render() {
+    if (!Auth.isAdmin) { Nav.go('home'); return; }
+
+    // Signalements : vue séparée
+    if (this._filter === 'reports') {
+      document.getElementById('admin-stats').style.display = 'none';
+      document.getElementById('admin-list').style.display  = 'none';
+      document.getElementById('admin-reports-list').style.display = 'flex';
+      await this._loadReports();
+      return;
+    }
+
+    const listEl  = document.getElementById('admin-list');
+    const statsEl = document.getElementById('admin-stats');
+    const countEl = document.getElementById('admin-count');
+    document.getElementById('admin-reports-list').style.display = 'none';
+    if (listEl)  listEl.style.display  = 'flex';
+    if (statsEl) statsEl.style.display = 'flex';
+    if (listEl) listEl.innerHTML = '<div style="text-align:center;padding:32px;color:#73777f">Chargement…</div>';
+
+    // Charger uniquement les liens certifiés globaux
+    const { data, error } = await getSupa()
+      .from('certified_links')
+      .select('*')
+      .eq('global', true)
+      .order('created_at', { ascending: false });
+
+    if (error) {
+      if (listEl) listEl.innerHTML = '<div style="padding:20px;color:#ba1a1a">Erreur : ' + error.message + '</div>';
+      return;
+    }
+
+    this._data = data || [];
+
+    // Stats globales
+    const total      = this._data.length;
+    const vtCount    = this._data.filter(i => i.source === 'virustotal').length;
+    const localCount = this._data.filter(i => i.source !== 'virustotal').length;
+
+    if (countEl) countEl.textContent = total;
+    if (statsEl) statsEl.innerHTML = `
+      <div style="text-align:center">
+        <div style="font-family:'Manrope',sans-serif;font-weight:800;font-size:22px;color:#191c1e">${total}</div>
+        <div style="font-size:11px;color:#73777f">Liens certifiés</div>
+      </div>
+      <div style="width:1px;background:#eceef1"></div>
+      <div style="text-align:center">
+        <div style="font-family:'Manrope',sans-serif;font-weight:800;font-size:22px;color:#1a7a40">${localCount}</div>
+        <div style="font-size:11px;color:#73777f">Analyse locale</div>
+      </div>
+      <div style="width:1px;background:#eceef1"></div>
+      <div style="text-align:center">
+        <div style="font-family:'Manrope',sans-serif;font-weight:800;font-size:22px;color:#1a56db">${vtCount}</div>
+        <div style="font-size:11px;color:#73777f">VirusTotal</div>
+      </div>`;
+
+    this._renderList();
+  },
+
+  _renderList() {
+    const listEl = document.getElementById('admin-list');
+    if (!listEl) return;
+
+    let items = this._data;
+    if (this._filter && this._filter !== 'all')
+      items = items.filter(i => (i.category || 'other') === this._filter);
+
+    if (!items.length) {
+      listEl.innerHTML = '<div style="text-align:center;padding:40px;color:#73777f;font-size:14px">Aucun résultat</div>';
+      return;
+    }
+
+    listEl.innerHTML = items.map(item => {
+      const date = new Date(item.created_at).toLocaleDateString('fr-FR', {day:'2-digit', month:'short', year:'numeric'});
+      const cat  = CATEGORIES[item.category || 'other'] || CATEGORIES.other;
+      return `<div style="background:#fff;border:1px solid #eceef1;border-radius:16px;padding:14px 16px">
+        <div style="display:flex;align-items:flex-start;gap:12px">
+          <div style="width:40px;height:40px;border-radius:12px;background:${cat.bg};display:flex;align-items:center;justify-content:center;flex-shrink:0">
+            <span class="material-symbols-outlined" style="color:${cat.color};font-size:20px;font-variation-settings:'FILL' 1">${cat.icon}</span>
+          </div>
+          <div style="flex:1;min-width:0">
+            <div style="font-size:14px;font-weight:700;color:#191c1e;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${item.label || item.domain || item.url}</div>
+            <div style="font-size:12px;color:#73777f;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-top:1px">${item.url}</div>
+            <div style="display:flex;align-items:center;gap:6px;margin-top:6px;flex-wrap:wrap">
+              <span style="background:${cat.bg};color:${cat.color};font-size:11px;font-weight:700;padding:2px 8px;border-radius:6px;display:flex;align-items:center;gap:3px">
+                <span class="material-symbols-outlined" style="font-size:12px">${cat.icon}</span>${cat.label}
+              </span>
+              <span style="background:#d4f4e2;color:#1a7a40;font-size:11px;font-weight:700;padding:2px 8px;border-radius:6px">Score ${item.score ?? '—'}</span>
+              ${item.source === 'virustotal' ? '<span style="background:#fef3c7;color:#7a4f00;font-size:11px;font-weight:700;padding:2px 8px;border-radius:6px">VT</span>' : ''}
+              <span style="font-size:11px;color:#b0b5bf;margin-left:auto">${date}</span>
+            </div>
+          </div>
+          <button onclick="AdminScreen.deleteLink('${item.id}')" style="background:none;border:none;cursor:pointer;padding:4px;flex-shrink:0">
+            <span class="material-symbols-outlined" style="color:#b0b5bf;font-size:20px">delete</span>
+          </button>
+        </div>
+      </div>`;
+    }).join('');
+  },
+
+  filter(f) {
+    this._filter = f;
+    document.querySelectorAll('.admin-chip').forEach(chip => {
+      const active = chip.dataset.af === f;
+      const isReportChip = chip.dataset.af === 'reports';
+      chip.style.background = active
+        ? (isReportChip ? '#ffdad6' : '#fff')
+        : (isReportChip ? 'rgba(186,26,26,.35)' : 'rgba(255,255,255,.18)');
+      chip.style.color = active
+        ? (isReportChip ? '#ba1a1a' : '#1a3a5c')
+        : (isReportChip ? '#fca5a5' : '#fff');
+    });
+
+    const isReports = f === 'reports';
+    const statsEl   = document.getElementById('admin-stats');
+    const listEl    = document.getElementById('admin-list');
+    const reportsEl = document.getElementById('admin-reports-list');
+    if (statsEl)   statsEl.style.display   = isReports ? 'none' : 'flex';
+    if (listEl)    listEl.style.display    = isReports ? 'none' : 'flex';
+    if (reportsEl) reportsEl.style.display = isReports ? 'flex' : 'none';
+
+    if (isReports) this._loadReports();
+    else this._renderList();
+  },
+
+  async deleteLink(id) {
+    if (!await confirmModal('Supprimer ce lien (action admin) ?')) return;
+    const { error } = await getSupa().from('certified_links').delete().eq('id', id);
+    if (error) { showToast('Erreur : ' + error.message); return; }
+    showToast('Lien supprimé');
+    this._data = this._data.filter(i => i.id !== id);
+    this._renderList();
+    document.getElementById('admin-count').textContent = this._data.length;
+  },
+
+  openAdd() {
+    document.getElementById('admin-add-url').value   = '';
+    document.getElementById('admin-add-label').value = '';
+    document.getElementById('admin-add-score').value = '95';
+    this.selectCat('bank');
+    Modal.open('admin-add');
+  },
+
+  selectCat(cat) {
+    document.getElementById('admin-add-category').value = cat;
+    const selected = CATEGORIES[cat] || CATEGORIES.other;
+    document.querySelectorAll('.cat-chip').forEach(btn => {
+      const isActive = btn.dataset.cat === cat;
+      btn.style.background   = isActive ? selected.bg  : '#fff';
+      btn.style.color        = isActive ? selected.color : '#73777f';
+      btn.style.borderColor  = isActive ? selected.bg  : '#eceef1';
+      btn.style.fontWeight   = isActive ? '700' : '600';
+    });
+  },
+
+  async addLink() {
+    const url      = document.getElementById('admin-add-url')?.value.trim();
+    const label    = document.getElementById('admin-add-label')?.value.trim();
+    const score    = parseInt(document.getElementById('admin-add-score')?.value) || 95;
+    const category = document.getElementById('admin-add-category')?.value || 'other';
+    if (!url) { showToast('Veuillez saisir une URL'); return; }
+    let domain = '';
+    try { domain = new URL(url).hostname; } catch {}
+    const { error } = await getSupa().from('certified_links').insert({
+      user_id: Auth.user.id,
+      url, domain, score, category,
+      label:  label || domain || null,
+      source: 'local',
+      global: true
+    });
+    if (error) { showToast('Erreur : ' + error.message); return; }
+    Modal.close('admin-add');
+    showToast('Lien certifié globalement !');
+    this.render();
+  },
+
+  async _loadReports() {
+    const el = document.getElementById('admin-reports-list');
+    const countEl = document.getElementById('admin-count');
+    if (!el) return;
+    el.innerHTML = '<div style="text-align:center;padding:32px;color:#73777f">Chargement…</div>';
+
+    const { data, error } = await getSupa()
+      .from('link_votes')
+      .select('url, domain, vote');
+
+    if (error) { el.innerHTML = '<div style="padding:20px;color:#ba1a1a">Erreur : ' + error.message + '</div>'; return; }
+
+    // Agréger par URL
+    const byUrl = {};
+    (data || []).forEach(v => {
+      if (!byUrl[v.url]) {
+        let domain = v.domain;
+        if (!domain) { try { domain = new URL(v.url).hostname; } catch {} }
+        byUrl[v.url] = { url: v.url, domain: domain || v.url, safe: 0, unsafe: 0 };
+      }
+      if (v.vote === 'safe') byUrl[v.url].safe++;
+      else byUrl[v.url].unsafe++;
+    });
+
+    const items = Object.values(byUrl)
+      .filter(i => i.unsafe > 0)
+      .sort((a, b) => b.unsafe - a.unsafe);
+
+    if (countEl) countEl.textContent = items.length;
+
+    if (!items.length) {
+      el.innerHTML = `<div style="text-align:center;padding:48px 0;color:#73777f;font-size:14px">
+        <span class="material-symbols-outlined" style="font-size:48px;display:block;margin-bottom:12px;color:#b0b5bf">flag</span>
+        Aucun signalement pour le moment
+      </div>`;
+      return;
+    }
+
+    el.innerHTML = items.map(item => {
+      const total  = item.safe + item.unsafe;
+      const safeW  = Math.round((item.safe / total) * 100);
+      const sid    = Store.set(item);
+      return `<div style="background:#fff;border:1px solid #eceef1;border-radius:16px;padding:14px 16px">
+        <div style="display:flex;align-items:flex-start;gap:12px;margin-bottom:10px">
+          <div style="width:40px;height:40px;border-radius:12px;background:#ffdad6;display:flex;align-items:center;justify-content:center;flex-shrink:0">
+            <span class="material-symbols-outlined" style="color:#ba1a1a;font-size:20px;font-variation-settings:'FILL' 1">flag</span>
+          </div>
+          <div style="flex:1;min-width:0">
+            <div style="font-size:14px;font-weight:700;color:#191c1e;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${item.domain}</div>
+            <div style="font-size:12px;color:#73777f;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-top:1px">${item.url}</div>
+            <div style="height:5px;border-radius:3px;background:#ffdad6;margin:8px 0;overflow:hidden">
+              <div style="height:100%;width:${safeW}%;background:#34d399;border-radius:3px"></div>
+            </div>
+            <div style="display:flex;gap:12px;font-size:12px;font-weight:600">
+              <span style="color:#1a7a40">👍 ${item.safe} sûr</span>
+              <span style="color:#ba1a1a">👎 ${item.unsafe} suspect</span>
+            </div>
+          </div>
+        </div>
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px">
+          <button onclick="AdminScreen.certifyFromVote(Store.get(${sid}).url, Store.get(${sid}).domain)"
+            style="padding:10px;border-radius:12px;border:none;background:#d4f4e2;color:#1a7a40;font-size:12px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px">
+            <span class="material-symbols-outlined" style="font-size:16px">verified_user</span>Certifier
+          </button>
+          <button onclick="AdminScreen.dismissReport(Store.get(${sid}).url)"
+            style="padding:10px;border-radius:12px;border:none;background:#f0f2f5;color:#73777f;font-size:12px;font-weight:700;cursor:pointer;display:flex;align-items:center;justify-content:center;gap:6px">
+            <span class="material-symbols-outlined" style="font-size:16px">close</span>Ignorer
+          </button>
+        </div>
+      </div>`;
+    }).join('');
+  },
+
+  async certifyFromVote(url, domain) {
+    if (!await confirmModal(`Certifier globalement "${esc(domain || url)}" ?`, 'Certifier', false)) return;
+    const { error } = await getSupa().from('certified_links').insert({
+      user_id:  Auth.user.id,
+      url, domain: domain || '',
+      score:    90,
+      source:   'local',
+      label:    domain || null,
+      global:   true,
+      category: 'other'
+    });
+    if (error) { showToast('Erreur : ' + error.message); return; }
+    showToast('Lien certifié globalement !');
+    this._loadReports();
+  },
+
+  async dismissReport(url) {
+    if (!await confirmModal('Supprimer tous les votes pour ce lien ?')) return;
+    const { error } = await getSupa().from('link_votes').delete().eq('url', url);
+    if (error) { showToast('Erreur : ' + error.message); return; }
+    showToast('Signalements supprimés');
+    this._loadReports();
+  }
+};
+
+/* ══════════════════════════════════════════
+   PROFIL UTILISATEUR
+══════════════════════════════════════════ */
+const Profile = {
+  refresh() {
+    const p = DB.getProfile();
+    const name  = p.name  || Auth.user?.user_metadata?.name || Auth.user?.email?.split('@')[0] || 'Mon profil';
+    const email = p.email || Auth.user?.email || 'Non configuré';
+    const initials = name.split(' ').map(w=>w[0]||'').slice(0,2).join('').toUpperCase() || '?';
+
+    // Settings screen
+    const sName  = document.getElementById('settings-name');
+    const sEmail = document.getElementById('settings-email');
+    const sAv    = document.getElementById('settings-avatar');
+    if (sName)  sName.textContent  = name;
+    if (sEmail) sEmail.textContent = email;
+    if (sAv)    sAv.textContent    = initials;
+
+    // Home avatar
+    const hAv = document.getElementById('home-avatar');
+    if (hAv) hAv.innerHTML = `<span style="font-family:'Manrope',sans-serif;font-weight:800;color:#fff;font-size:15px">${initials}</span>`;
+
+    // API key status
+    const vtLabel = document.getElementById('vt-status-label');
+    if (vtLabel) vtLabel.textContent = DB.getApiKey() ? '✓ Analyse VirusTotal active' : 'Analyse locale uniquement';
+  },
+
+  save() {
+    const name  = document.getElementById('prof-name')?.value.trim();
+    const email = document.getElementById('prof-email')?.value.trim();
+    if (!name) { showToast('Entrez un nom'); return; }
+    DB.setProfile({ name, email });
+    Modal.close('profile');
+    this.refresh();
+    showToast('Profil mis à jour');
+  },
+
+  saveApiKey() {
+    const k = document.getElementById('vt-key-input')?.value.trim();
+    if (!k) { showToast('Clé vide'); return; }
+    DB.setApiKey(k);
+    Modal.close('apikey');
+    this.refresh();
+    showToast('Clé API enregistrée');
+  },
+
+  clearApiKey() {
+    DB.setApiKey('');
+    Modal.close('apikey');
+    this.refresh();
+    showToast('Clé API supprimée');
+  }
+};
+
+/* ══════════════════════════════════════════
+   MODAL
+══════════════════════════════════════════ */
+const Modal = {
+  open(id) {
+    const el = document.getElementById('modal-' + id);
+    if (!el) return;
+    // Pré-remplir les champs si profil
+    if (id === 'profile') {
+      const p = DB.getProfile();
+      const ni = document.getElementById('prof-name');
+      const ei = document.getElementById('prof-email');
+      if (ni) ni.value = p.name  || Auth.user?.user_metadata?.name || '';
+      if (ei) ei.value = p.email || Auth.user?.email || '';
+    }
+    if (id === 'apikey') {
+      const ki = document.getElementById('vt-key-input');
+      if (ki) ki.value = DB.getApiKey();
+    }
+    el.classList.add('open');
+    setTimeout(() => el.querySelector('.field-input,input')?.focus(), 300);
+  },
+  close(id) {
+    document.getElementById('modal-' + id)?.classList.remove('open');
+  }
+};
+
+/* ══════════════════════════════════════════
+   UTILITAIRES
+══════════════════════════════════════════ */
+function timeAgo(iso) {
+  const m = Math.floor((Date.now()-new Date(iso))/60000);
+  if (m<1) return 'À l\'instant';
+  if (m<60) return m+'m';
+  const h = Math.floor(m/60);
+  if (h<24) return h+'h';
+  return Math.floor(h/24)+'j';
+}
+
+function statusCfg(status) {
+  return {
+    certified: {icon:'verified_user', label:'Certifié',  color:'#1a7a40', bg:'#d4f4e2', dark:'#0d2a1a', headline:'Lien Certifié',         sub:'Cette destination est vérifiée comme sécurisée.'},
+    warning:   {icon:'security_update_warning', label:'Attention', color:'#7a4f00', bg:'#fef3c7', dark:'#2a1f00', headline:'Lien Suspect Détecté',   sub:'Ce lien présente des caractéristiques suspectes.'},
+    blocked:   {icon:'dangerous',    label:'Bloqué',    color:'#ba1a1a', bg:'#ffdad6', dark:'#2a0d0d', headline:'Lien Dangereux Bloqué',  sub:'Ne visitez pas cette URL. Menace confirmée.'},
+  }[status] || {icon:'help',label:'Inconnu',color:'#73777f',bg:'#eceef1',dark:'#2a2d3a',headline:'Résultat inconnu',sub:''};
+}
+
+/* ══════════════════════════════════════════
+   NAVIGATION — simple et robuste
+══════════════════════════════════════════ */
+const Nav = {
+  current: 'splash',
+  stack:   ['splash'],
+  noNav:   new Set(['splash','scanner','result','auth','login','article']),
+  tabs:    new Set(['home','history','search','settings','sms','news']),
+
+  // Naviguer vers un écran
+  async go(name, data) {
+    if (name === this.current && name !== 'result') return;
+
+    // Vérification biométrique avant d'accéder aux paramètres
+    if (name === 'settings') {
+      const ok = await Biometric.guardSettings();
+      if (!ok) return;
+    }
+
+    // Arrêter le scanner si on le quitte
+    if (this.current === 'scanner') Scanner.stop();
+
+    // Si on va vers result depuis le scanner, retirer scanner de la pile
+    // (le scanner est arrêté, inutile d'y revenir avec Back)
+    if (name === 'result' && this.stack[this.stack.length-1] === 'scanner') {
+      this.stack.pop();
+    }
+
+    // Cacher TOUS les écrans
+    document.querySelectorAll('.screen').forEach(el => { el.style.display = 'none'; });
+
+    // Préparer le contenu dynamique
+    if (name === 'result' && data) {
+      CertifiedLinks._current = data;
+      document.getElementById('result-content').innerHTML = buildResult(data);
+      if (!data.loading) Votes.load(data.url);
+    }
+
+    // Afficher le nouvel écran
+    const el = document.getElementById('s-' + name);
+    if (!el) { console.error('Écran inconnu:', name); return; }
+    el.style.display = 'flex';
+
+    // Mettre à jour l'état
+    this.current = name;
+    if (this.stack[this.stack.length-1] !== name) this.stack.push(name);
+
+    // Effets de bord
+    this._sideEffects(name);
+  },
+
+  // Retour en arrière
+  back() {
+    if (this.current === 'scanner') Scanner.stop();
+    if (this.stack.length > 1) this.stack.pop();
+    const prev = this.stack[this.stack.length-1] || 'home';
+
+    // Cacher tous, afficher précédent
+    document.querySelectorAll('.screen').forEach(el => { el.style.display = 'none'; });
+    const el = document.getElementById('s-' + prev);
+    if (el) el.style.display = 'flex';
+
+    this.current = prev;
+    this._sideEffects(prev);
+  },
+
+  _sideEffects(name) {
+    // Bottom nav
+    const nav = document.getElementById('bottom-nav');
+    if (this.noNav.has(name)) {
+      nav.classList.add('hidden');
+    } else {
+      nav.classList.remove('hidden');
+    }
+
+    // Surlignage onglets
+    document.querySelectorAll('.nav-tab').forEach(btn => {
+      btn.classList.toggle('active', btn.dataset.tab === name);
+    });
+
+    // Par écran
+    switch(name) {
+      case 'scanner':
+        document.getElementById('cam-error').style.display = 'none';
+        document.getElementById('video-el').style.display = 'block';
+        document.getElementById('scan-status').textContent = 'Alignez le QR code dans le cadre';
+        setTimeout(() => Scanner.start(), 150);
+        break;
+      case 'home':
+        HomeScreen.refresh();
+        break;
+      case 'history':
+        HistoryScreen.render();
+        break;
+      case 'search':
+        setTimeout(() => document.getElementById('url-input')?.focus(), 250);
+        break;
+      case 'sms':
+        // Réinitialise les résultats à chaque visite
+        document.getElementById('sms-results').innerHTML = '';
+        document.getElementById('sms-examples').style.display = 'block';
+        break;
+      case 'news':
+        NewsScreen.render();
+        break;
+      case 'certified':
+        CertifiedLinks.render();
+        break;
+      case 'admin':
+        AdminScreen.render();
+        break;
+      case 'login':
+        AuthScreen.switchTab('login');
+        setTimeout(() => document.getElementById('screen-email')?.focus(), 300);
+        break;
+    }
+  }
+};
+
+/* ══════════════════════════════════════════
+   VÉRIFICATEUR D'URL
+══════════════════════════════════════════ */
+const Verifier = {
+  async run() {
+    const input = document.getElementById('url-input');
+    let url = (input?.value || '').trim();
+    if (!url) { input?.focus(); showToast('Entrez une URL d\'abord'); return; }
+    if (!/^https?:\/\//i.test(url)) url = 'https://' + url;
+    if (input) input.value = '';
+    await this._process(url);
+  },
+
+  async fromQR(url) {
+    await this._process(url);
+  },
+
+  async _process(url) {
+    // 1. Vérifier d'abord dans la base certifiée (si connecté)
+    const dbCheck = await this._checkCertifiedDB(url);
+
+    // Mode Turbo : lien certifié → vibration + retour scanner immédiat
+    if (dbCheck.status === 'certified' && DB.getSetting('turbo', false)) {
+      if (navigator.vibrate) navigator.vibrate([80, 40, 80]);
+      const cat = CATEGORIES[dbCheck.category] || CATEGORIES.other;
+      showToast(`✓ Certifié · ${cat.label}`);
+      const local = this.analyzeLocal(url);
+      DB.addScan({ ...local, status: 'certified', score: Math.max(local.score, 90), certCategory: dbCheck.category });
+      Nav.go('scanner');
+      return;
+    }
+
+    // 2. Analyse locale
+    const local = this.analyzeLocal(url);
+
+    // 3. Appliquer le résultat DB en priorité
+    let result = this._applyDBCheck(local, dbCheck);
+
+    // 4. Enrichir avec VirusTotal si clé dispo ET lien pas déjà certifié en DB
+    const vtKey = DB.getApiKey();
+    if (vtKey && dbCheck.status !== 'certified') {
+      Nav.go('result', { ...result, loading: true });
+      try {
+        const vtResult = await this.analyzeVT(url, vtKey);
+        result = this._merge(result, vtResult);
+      } catch {
+        result = { ...result, vtError: true };
+      }
+    }
+
+    DB.addScan(result);
+
+    // Notifications natives selon statut du scan et préférences utilisateur
+    if (Notification.permission === 'granted') {
+      const domain = result.domain || result.url;
+      if ((result.status === 'blocked' || result.status === 'warning') && DB.getSetting('notif-threat', true)) {
+        const icon = result.status === 'blocked' ? '🚫' : '⚠️';
+        new Notification(`${icon} QR CERTIFY — ${result.status === 'blocked' ? 'Menace détectée' : 'Lien suspect'}`, {
+          body: `${domain} — Score ${result.score}/100`,
+          icon: '/icon-192.png', tag: 'qrc-threat'
+        });
+      } else if (result.status === 'certified' && DB.getSetting('notif-scan', true)) {
+        new Notification('✓ QR CERTIFY — Lien certifié', {
+          body: domain,
+          icon: '/icon-192.png', tag: 'qrc-scan'
+        });
+      }
+    }
+
+    Nav.go('result', result);
+  },
+
+  // Vérifie si l'URL est dans la liste certifiée globale (admin uniquement)
+  async _checkCertifiedDB(url) {
+    if (!Auth.user) return { status: 'unknown' };
+    try {
+      const { data } = await getSupa()
+        .from('certified_links')
+        .select('id, category')
+        .eq('url', url)
+        .eq('global', true)
+        .limit(1);
+      if (data && data.length > 0)
+        return { status: 'certified', category: data[0].category || 'other' };
+      return { status: 'not_found' };
+    } catch { return { status: 'unknown' }; }
+  },
+
+  // Applique le résultat du check DB sur le résultat local
+  _applyDBCheck(local, dbCheck) {
+    if (dbCheck.status === 'certified') {
+      const cat = CATEGORIES[dbCheck.category] || CATEGORIES.other;
+      return {
+        ...local,
+        status: 'certified',
+        score: Math.max(local.score, 90),
+        certCategory: dbCheck.category,
+        flags: [
+          { t: 'ok', icon: cat.icon, msg: `URL certifiée · ${cat.label}` },
+          ...local.flags
+        ],
+        source: local.source
+      };
+    }
+    if (dbCheck.status === 'not_found') {
+      const extraFlag = { t: 'warning', icon: 'help_center', msg: 'Non répertoriée dans la liste certifiée' };
+      const alreadyHasFlag = local.flags.some(f => f.msg.includes('certifiée'));
+      // Domaine de confiance reconnu localement → ne pas dégrader le score
+      const isTrusted = local.flags.some(f => f.msg.includes('confiance'));
+      if (isTrusted) {
+        return {
+          ...local,
+          flags: alreadyHasFlag ? local.flags : [extraFlag, ...local.flags]
+        };
+      }
+      // URL inconnue → forcer au minimum "warning"
+      const newScore = Math.min(local.score, 60);
+      const newStatus = newScore >= 40 ? 'warning' : 'blocked';
+      return {
+        ...local,
+        score: newScore,
+        status: newStatus,
+        flags: alreadyHasFlag ? local.flags : [extraFlag, ...local.flags]
+      };
+    }
+    // 'unknown' → pas connecté, analyse locale seule
+    return local;
+  },
+
+  // Analyse heuristique locale
+  analyzeLocal(url) {
+    let score = 100;
+    const flags = [];
+    let domain = '';
+    try {
+      const u   = new URL(url);
+      domain    = u.hostname.toLowerCase();
+      const sld = domain.split('.')[0]; // partie avant le premier point
+
+      // ── HTTPS ──────────────────────────────────────────────
+      if (u.protocol !== 'https:') {
+        score -= 30;
+        flags.push({t:'danger', icon:'no_encryption', msg:'Connexion non sécurisée (HTTP)'});
+      } else {
+        flags.push({t:'ok', icon:'https', msg:'Protocole HTTPS sécurisé'});
+      }
+
+      // ── IP directe ─────────────────────────────────────────
+      if (/^\d+\.\d+\.\d+\.\d+$/.test(domain)) {
+        score -= 45;
+        flags.push({t:'danger', icon:'wifi_off', msg:'Adresse IP au lieu d\'un domaine'});
+      }
+
+      // ── TLD suspects ───────────────────────────────────────
+      const badTld = ['.xyz','.tk','.ml','.ga','.cf','.gq','.top','.click','.download','.loan','.win','.bid','.stream','.work','.icu','.buzz'];
+      if (badTld.some(t => domain.endsWith(t))) {
+        score -= 25;
+        flags.push({t:'warning', icon:'domain_disabled', msg:'Extension de domaine suspecte'});
+      }
+
+      // ── Domaines de confiance ──────────────────────────────
+      const trusted = [
+        'google.com','github.com','microsoft.com','apple.com','amazon.com',
+        'cloudflare.com','mozilla.org','wikipedia.org','stackoverflow.com',
+        'youtube.com','linkedin.com','qrcertify.io',
+        // France officiel
+        'gouv.fr','service-public.fr','impots.gouv.fr','caf.fr','ameli.fr',
+        'chronopost.fr','laposte.fr','orange.fr','sfr.fr','free.fr',
+        'bouyguestelecom.fr','sncf.com','ratp.fr','paypal.com','paypal.fr',
+      ];
+      if (trusted.some(d => domain === d || domain.endsWith('.'+d))) {
+        score = Math.min(100, score + 15);
+        flags.push({t:'ok', icon:'verified', msg:'Domaine de confiance reconnu'});
+      }
+
+      // ── Tirets multiples (phishing classique) ──────────────
+      const hyphens = (sld.match(/-/g) || []).length;
+      if (hyphens >= 2) {
+        score -= hyphens * 12;
+        flags.push({t:'danger', icon:'phishing', msg:`${hyphens} tirets dans le domaine — technique de phishing courante`});
+      } else if (hyphens === 1) {
+        score -= 8;
+        flags.push({t:'warning', icon:'warning', msg:'Domaine avec tiret — à vérifier'});
+      }
+
+      // ── Mots suspects dans le NOM DE DOMAINE ───────────────
+      const suspWords = ['secure','login','verify','account','update','payment',
+        'validation','remboursement','livraison','confirm','suspended','banking',
+        'billing','urgent','alerte','support','client','service','declaration'];
+      const foundWords = suspWords.filter(w => domain.includes(w));
+      if (foundWords.length) {
+        score -= foundWords.length * 15;
+        flags.push({t:'danger', icon:'phishing', msg:'Mots suspects dans le domaine : ' + foundWords.slice(0,2).join(', ')});
+      }
+
+      // ── Usurpation de marques connues ──────────────────────
+      const brands = [
+        {n:'chronopost', o:'chronopost.fr'},
+        {n:'laposte',    o:'laposte.fr'},
+        {n:'colissimo',  o:'laposte.fr'},
+        {n:'caf',        o:'caf.fr'},
+        {n:'ameli',      o:'ameli.fr'},
+        {n:'impots',     o:'impots.gouv.fr'},
+        {n:'paypal',     o:'paypal.com'},
+        {n:'amazon',     o:'amazon.fr'},
+        {n:'netflix',    o:'netflix.com'},
+        {n:'orange',     o:'orange.fr'},
+        {n:'sfr',        o:'sfr.fr'},
+        {n:'freemobile', o:'free.fr'},
+        {n:'societegenerale', o:'societegenerale.fr'},
+        {n:'creditagricole',  o:'credit-agricole.fr'},
+        {n:'bnpparibas', o:'bnpparibas.fr'},
+        {n:'lcl',        o:'lcl.fr'},
+      ];
+      const spoof = brands.find(b =>
+        domain.includes(b.n) && domain !== b.o && !domain.endsWith('.'+b.o)
+      );
+      if (spoof) {
+        score -= 35;
+        flags.push({t:'danger', icon:'gpp_bad', msg:`Usurpation de "${spoof.n}" — officiel : ${spoof.o}`});
+      }
+
+      // ── Faux TLD français (ex: amendes-radars-fr.com) ──────
+      if ((domain.includes('-fr.') || domain.endsWith('-fr')) && !domain.endsWith('.fr')) {
+        score -= 20;
+        flags.push({t:'warning', icon:'flag', msg:'Imite un domaine français (.fr) avec une fausse extension'});
+      }
+
+      // ── Mots-clés phishing dans l'URL complète ─────────────
+      const phishUrl = ['secure-login','account-update','signin-verify','password-reset',
+        'confirm-identity','suspended-account','unusual-activity','verify-now',
+        'update-billing','login-alert'];
+      const foundUrl = phishUrl.filter(k => url.toLowerCase().includes(k));
+      if (foundUrl.length) {
+        score -= foundUrl.length * 20;
+        flags.push({t:'danger', icon:'phishing', msg:'Mots-clés phishing dans l\'URL : ' + foundUrl[0]});
+      }
+
+      // ── Sous-domaines excessifs ─────────────────────────────
+      if (domain.split('.').length > 4) {
+        score -= 15;
+        flags.push({t:'warning', icon:'device_hub', msg:'Sous-domaines multiples suspects'});
+      }
+
+      // ── URL trop longue ────────────────────────────────────
+      if (url.length > 120) {
+        score -= 10;
+        flags.push({t:'warning', icon:'link_off', msg:'URL anormalement longue'});
+      }
+
+      // ── Encodage suspect ───────────────────────────────────
+      if ((url.match(/%[0-9a-f]{2}/gi)||[]).length > 6) {
+        score -= 15;
+        flags.push({t:'warning', icon:'code', msg:'Encodage URL suspect'});
+      }
+
+    } catch {
+      score = 0; flags.push({t:'danger', icon:'error', msg:'Format d\'URL invalide'}); domain = 'invalide';
+    }
+    score = Math.max(0, Math.min(100, score));
+    const status = score >= 75 ? 'certified' : score >= 40 ? 'warning' : 'blocked';
+    return { url, domain, score, status, flags, source: 'local' };
+  },
+
+  // Analyse VirusTotal — timeout 8s via AbortController
+  async analyzeVT(url, apiKey) {
+    const encoded = btoa(url).replace(/=/g,'').replace(/\+/g,'-').replace(/\//g,'_');
+    const ctrl = new AbortController();
+    const timer = setTimeout(() => ctrl.abort(), 8000);
+    try {
+      const resp = await fetch(`https://www.virustotal.com/api/v3/urls/${encoded}`, {
+        headers: { 'x-apikey': apiKey },
+        signal: ctrl.signal
+      });
+      if (!resp.ok) throw new Error('VT API error: ' + resp.status);
+      const json = await resp.json();
+      const stats = json.data?.attributes?.last_analysis_stats || {};
+      const malicious  = (stats.malicious  || 0);
+      const suspicious = (stats.suspicious || 0);
+      const harmless   = (stats.harmless   || 0);
+      const total = malicious + suspicious + harmless + (stats.undetected || 0);
+      return { malicious, suspicious, harmless, total };
+    } finally {
+      clearTimeout(timer);
+    }
+  },
+
+  _merge(local, vt) {
+    const flags = [...local.flags];
+    let score = local.score;
+    if (vt.malicious > 0) {
+      score -= Math.min(60, vt.malicious * 12);
+      flags.push({t:'danger', icon:'gpp_bad', msg:`VirusTotal : ${vt.malicious} moteur(s) ont détecté une menace`});
+    } else if (vt.suspicious > 0) {
+      score -= vt.suspicious * 8;
+      flags.push({t:'warning', icon:'gpp_maybe', msg:`VirusTotal : ${vt.suspicious} moteur(s) signalent une suspicion`});
+    } else if (vt.total > 0) {
+      score = Math.min(100, score + 5);
+      flags.push({t:'ok', icon:'gpp_good', msg:`VirusTotal : aucune menace (${vt.harmless}/${vt.total} moteurs OK)`});
+    }
+    score = Math.max(0, Math.min(100, score));
+    const status = score >= 75 ? 'certified' : score >= 40 ? 'warning' : 'blocked';
+    return { ...local, score, status, flags, source: 'virustotal', vt };
+  }
+};
+
+/* ══════════════════════════════════════════
+   SCANNER CAMÉRA
+══════════════════════════════════════════ */
+const Scanner = {
+  stream: null,
+  active: false,
+  flashOn: false,
+
+  async start() {
+    this.active = true;
+    const video = document.getElementById('video-el');
+    const err   = document.getElementById('cam-error');
+    try {
+      this.stream = await navigator.mediaDevices.getUserMedia({
+        video: { facingMode: 'environment', width:{ideal:1280}, height:{ideal:720} }
+      });
+      video.srcObject = this.stream;
+      await video.play();
+      this._loop(video);
+    } catch {
+      err.style.display = 'flex';
+      video.style.display = 'none';
+    }
+  },
+
+  _loop(video) {
+    const INTERVAL = 100; // ~10fps max — économie batterie
+    const canvas = document.createElement('canvas');
+    const ctx = canvas.getContext('2d', { willReadFrequently: true });
+    let last = 0;
+    const tick = (ts) => {
+      if (!this.active) return;
+      if (ts - last < INTERVAL) { requestAnimationFrame(tick); return; }
+      last = ts;
+      if (video.readyState === video.HAVE_ENOUGH_DATA) {
+        canvas.width = video.videoWidth;
+        canvas.height = video.videoHeight;
+        ctx.drawImage(video, 0, 0);
+        const img = ctx.getImageData(0, 0, canvas.width, canvas.height);
+        const code = jsQR(img.data, img.width, img.height, {inversionAttempts:'dontInvert'});
+        if (code) {
+          // Toggle autoscan : si désactivé → bouton manuel au lieu d'analyse auto
+          if (!DB.getSetting('autoscan', true)) {
+            const existing = document.getElementById('manual-scan-btn');
+            if (!existing) {
+              const btn = document.createElement('button');
+              btn.id = 'manual-scan-btn';
+              btn.innerHTML = '<span class="material-symbols-outlined" style="font-size:18px;vertical-align:middle;margin-right:6px">qr_code_scanner</span>Analyser ce QR';
+              btn.style.cssText = 'position:absolute;bottom:110px;left:50%;transform:translateX(-50%);background:#316bf3;color:#fff;border:none;border-radius:20px;padding:13px 26px;font-size:14px;font-weight:700;cursor:pointer;z-index:10;display:flex;align-items:center;white-space:nowrap;box-shadow:0 4px 20px rgba(49,107,243,.4)';
+              const captured = code.data;
+              btn.onclick = () => { btn.remove(); Scanner.stop(); Verifier.fromQR(captured); };
+              document.getElementById('s-scanner').style.position = 'relative';
+              document.getElementById('s-scanner').appendChild(btn);
+            }
+          } else {
+            this.stop(); Verifier.fromQR(code.data); return;
+          }
+        } else {
+          // QR disparu → retirer le bouton manuel s'il était affiché
+          document.getElementById('manual-scan-btn')?.remove();
+        }
+      }
+      requestAnimationFrame(tick);
+    };
+    requestAnimationFrame(tick);
+  },
+
+  stop() {
+    this.active = false;
+    this.flashOn = false;
+    if (this.stream) { this.stream.getTracks().forEach(t => t.stop()); this.stream = null; }
+  },
+
+  async toggleFlash() {
+    if (!this.stream) return;
+    const track = this.stream.getVideoTracks()[0];
+    if (!track?.getCapabilities?.()?.torch) { showToast('Flash non disponible'); return; }
+    this.flashOn = !this.flashOn;
+    await track.applyConstraints({advanced:[{torch:this.flashOn}]});
+    document.querySelector('#flash-btn span').textContent = this.flashOn ? 'flashlight_off' : 'flashlight_on';
+  },
+
+  pickImage() {
+    const inp = document.createElement('input');
+    inp.type = 'file'; inp.accept = 'image/*';
+    inp.onchange = e => {
+      const file = e.target.files[0]; if (!file) return;
+      const reader = new FileReader();
+      reader.onload = ev => {
+        const img = new Image();
+        img.onload = () => {
+          const c = document.createElement('canvas');
+          c.width = img.width; c.height = img.height;
+          c.getContext('2d').drawImage(img,0,0);
+          const d = c.getContext('2d').getImageData(0,0,c.width,c.height);
+          const code = jsQR(d.data,d.width,d.height);
+          if (code) { this.stop(); Verifier.fromQR(code.data); }
+          else showToast('Aucun QR code trouvé dans cette image');
+        };
+        img.src = ev.target.result;
+      };
+      reader.readAsDataURL(file);
+    };
+    inp.click();
+  }
+};
+
+/* ══════════════════════════════════════════
+   VOTES COMMUNAUTAIRES
+══════════════════════════════════════════ */
+const Votes = {
+  async load(url) {
+    if (!Auth.user) return;
+    const el = document.getElementById('vote-section');
+    if (!el) return;
+    try {
+      const { data } = await getSupa()
+        .from('link_votes')
+        .select('*')
+        .eq('url', url);
+      const safe    = (data||[]).filter(v => v.vote === 'safe').length;
+      const unsafe  = (data||[]).filter(v => v.vote === 'unsafe').length;
+      const myVote  = (data||[]).find(v => v.user_id === Auth.user.id)?.vote || null;
+      el.innerHTML  = this._build(url, safe, unsafe, myVote);
+    } catch { el.style.display = 'none'; }
+  },
+
+  _build(url, safe, unsafe, myVote) {
+    const total  = safe + unsafe;
+    const safeW  = total ? Math.round((safe / total) * 100) : 50;
+    const sid    = Store.set({ url });
+    const label  = total ? `${total} avis` : 'Aucun avis pour le moment';
+    const bar    = total
+      ? `<div style="height:5px;border-radius:3px;background:#ffdad6;margin:10px 0;overflow:hidden">
+           <div style="height:100%;width:${safeW}%;background:#34d399;border-radius:3px"></div>
+         </div>`
+      : '<div style="height:5px;border-radius:3px;background:#eceef1;margin:10px 0"></div>';
+    return `
+      <div style="font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.08em;color:#73777f;margin-bottom:4px;display:flex;align-items:center;justify-content:space-between">
+        <span>Avis de la communauté</span>
+        <span style="font-weight:400;text-transform:none;letter-spacing:0">${label}</span>
+      </div>
+      ${bar}
+      <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;margin-top:4px">
+        <button onclick="Votes.cast(Store.get(${sid}).url,'safe')"
+          style="padding:12px;border-radius:14px;border:2px solid ${myVote==='safe'?'#1a7a40':'#eceef1'};background:${myVote==='safe'?'#d4f4e2':'#fff'};cursor:pointer;font-size:13px;font-weight:600;color:${myVote==='safe'?'#1a7a40':'#43474e'};display:flex;align-items:center;justify-content:center;gap:6px">
+          👍 Sûr${safe?' · '+safe:''}
+        </button>
+        <button onclick="Votes.cast(Store.get(${sid}).url,'unsafe')"
+          style="padding:12px;border-radius:14px;border:2px solid ${myVote==='unsafe'?'#ba1a1a':'#eceef1'};background:${myVote==='unsafe'?'#ffdad6':'#fff'};cursor:pointer;font-size:13px;font-weight:600;color:${myVote==='unsafe'?'#ba1a1a':'#43474e'};display:flex;align-items:center;justify-content:center;gap:6px">
+          👎 Suspect${unsafe?' · '+unsafe:''}
+        </button>
+      </div>`;
+  },
+
+  async cast(url, vote) {
+    if (!Auth.user) { showToast('Connectez-vous pour voter'); return; }
+    let domain = '';
+    try { domain = new URL(url).hostname; } catch {}
+    const { error } = await getSupa().from('link_votes').upsert(
+      { user_id: Auth.user.id, url, domain, vote },
+      { onConflict: 'user_id,url' }
+    );
+    if (error) { showToast('Erreur : ' + error.message); return; }
+    showToast(vote === 'safe' ? '👍 Merci pour votre avis !' : '👎 Signalement enregistré');
+    this.load(url);
+  }
+};
+
+/* ══════════════════════════════════════════
+   ÉCRAN HOME
+══════════════════════════════════════════ */
+const HomeScreen = {
+  refresh() {
+    const h = DB.history();
+    const $ = id => document.getElementById(id);
+    $('stat-total').textContent = h.length;
+    $('stat-cert').textContent  = h.filter(i=>i.status==='certified').length;
+    $('stat-warn').textContent  = h.filter(i=>i.status==='warning').length;
+    $('stat-block').textContent = h.filter(i=>i.status==='blocked').length;
+
+    this._buildChart(h);
+
+    const list = $('recent-list');
+    if (!list) return;
+    const recent = h.slice(0,5);
+    if (!recent.length) {
+      list.innerHTML = '<div style="text-align:center;padding:32px 0;color:#73777f;font-size:14px"><span class="material-symbols-outlined" style="font-size:40px;display:block;margin-bottom:8px;color:#b0b5bf">history</span>Aucun scan récent</div>';
+      return;
+    }
+    list.innerHTML = recent.map(item => {
+      const c = statusCfg(item.status);
+      const sid = Store.set(item);
+      return `<div class="press" onclick="Nav.go('result',Store.get(${sid}))" style="display:flex;align-items:center;gap:10px;padding:12px;border-radius:14px;background:#fff;border:1px solid #eceef1;margin-bottom:8px">
+        <div style="width:36px;height:36px;border-radius:10px;background:${c.bg};display:flex;align-items:center;justify-content:center;flex-shrink:0">
+          <span class="material-symbols-outlined" style="color:${c.color};font-size:18px;font-variation-settings:'FILL' 1">${c.icon}</span>
+        </div>
+        <div style="flex:1;min-width:0">
+          <div style="font-size:13px;font-weight:600;color:#191c1e;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${item.domain||'Scan'}</div>
+          <div style="font-size:11px;color:#73777f;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${item.url}</div>
+        </div>
+        <div style="text-align:right;flex-shrink:0">
+          <span style="background:${c.bg};color:${c.color};font-size:11px;font-weight:700;padding:3px 8px;border-radius:99px">${c.label}</span>
+          <div style="font-size:11px;color:#b0b5bf;margin-top:3px">${timeAgo(item.date)}</div>
+        </div>
+      </div>`;
+    }).join('');
+  },
+
+  _buildChart(history) {
+    const el = document.getElementById('home-chart');
+    if (!el) return;
+
+    // Construire les 7 derniers jours
+    const days = [];
+    const now = new Date();
+    for (let i = 6; i >= 0; i--) {
+      const d = new Date(now);
+      d.setDate(d.getDate() - i);
+      const key   = d.toISOString().slice(0, 10);
+      const label = d.toLocaleDateString('fr-FR', { weekday: 'short' }).replace('.','');
+      days.push({ key, label, c: 0, w: 0, b: 0, today: i === 0 });
+    }
+
+    // Remplir avec l'historique
+    history.forEach(item => {
+      if (!item.date) return;
+      const key = new Date(item.date).toISOString().slice(0, 10);
+      const day = days.find(d => d.key === key);
+      if (!day) return;
+      if (item.status === 'certified') day.c++;
+      else if (item.status === 'warning') day.w++;
+      else if (item.status === 'blocked') day.b++;
+    });
+
+    const maxTotal = Math.max(...days.map(d => d.c + d.w + d.b), 1);
+    const BAR_MAX  = 72;
+
+    const cols = days.map(day => {
+      const total = day.c + day.w + day.b;
+      const h = total ? Math.max(Math.round((total / maxTotal) * BAR_MAX), 8) : 5;
+      const bars = [
+        day.b ? `<div style="flex:${day.b};background:#f87171"></div>` : '',
+        day.w ? `<div style="flex:${day.w};background:#fbbf24"></div>` : '',
+        day.c ? `<div style="flex:${day.c};background:#34d399"></div>` : ''
+      ].join('');
+      return `<div style="flex:1;display:flex;flex-direction:column;align-items:stretch">
+        <div style="height:${h}px;border-radius:4px;overflow:hidden;${!total ? 'background:#eceef1' : 'display:flex;flex-direction:column'}">${bars}</div>
+        <div style="text-align:center;font-size:10px;margin-top:5px;color:${day.today ? '#191c1e' : '#73777f'};font-weight:${day.today ? '700' : '400'}">${day.label}</div>
+      </div>`;
+    }).join('');
+
+    el.innerHTML = `<div style="display:flex;align-items:flex-end;gap:5px;height:${BAR_MAX + 22}px">${cols}</div>`;
+  }
+};
+
+/* ══════════════════════════════════════════
+   ÉCRAN HISTORIQUE
+══════════════════════════════════════════ */
+const HistoryScreen = {
+  activeFilter: 'all',
+
+  render() {
+    const list = document.getElementById('history-list');
+    if (!list) return;
+    let items = DB.history();
+    if (this.activeFilter !== 'all') items = items.filter(i=>i.status===this.activeFilter);
+    if (!items.length) {
+      list.innerHTML = '<div style="text-align:center;padding:48px 0;color:#73777f;font-size:14px"><span class="material-symbols-outlined" style="font-size:48px;display:block;margin-bottom:12px;color:#b0b5bf">manage_search</span>Aucun élément</div>';
+      return;
+    }
+    list.innerHTML = items.map(item => {
+      const c = statusCfg(item.status);
+      const d = new Date(item.date);
+      const ds = d.toLocaleDateString('fr-FR',{day:'2-digit',month:'short',year:'numeric'})+' · '+d.toLocaleTimeString('fr-FR',{hour:'2-digit',minute:'2-digit'});
+      const sid = Store.set(item);
+      return `<div class="press" onclick="Nav.go('result',Store.get(${sid}))" style="background:#fff;border:1px solid #eceef1;border-radius:16px;padding:14px;display:flex;align-items:center;gap:12px">
+        <div style="width:42px;height:42px;border-radius:12px;background:${c.bg};display:flex;align-items:center;justify-content:center;flex-shrink:0">
+          <span class="material-symbols-outlined" style="color:${c.color};font-size:22px;font-variation-settings:'FILL' 1">${c.icon}</span>
+        </div>
+        <div style="flex:1;min-width:0">
+          <div style="font-size:14px;font-weight:600;color:#191c1e;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${item.domain||item.url}</div>
+          <div style="font-size:12px;color:#73777f;white-space:nowrap;overflow:hidden;text-overflow:ellipsis;margin-top:2px">${item.url}</div>
+          <div style="display:flex;align-items:center;justify-content:space-between;margin-top:6px">
+            <span style="background:${c.bg};color:${c.color};font-size:11px;font-weight:700;padding:3px 10px;border-radius:99px">${c.label}</span>
+            <span style="font-size:11px;color:#b0b5bf">${ds}</span>
+          </div>
+        </div>
+        <span class="material-symbols-outlined" style="color:#b0b5bf;font-size:22px;flex-shrink:0">chevron_right</span>
+      </div>`;
+    }).join('');
+  },
+
+  filter(f) {
+    this.activeFilter = f;
+    document.querySelectorAll('.filter-chip').forEach(chip => {
+      const active = chip.dataset.f === f;
+      chip.style.background = active ? '#fff' : 'rgba(255,255,255,.18)';
+      chip.style.color = active ? '#1a3a5c' : '#fff';
+    });
+    this.render();
+  },
+
+  async clear() {
+    if (!await confirmModal('Effacer tout l\'historique des scans ?')) return;
+    DB.clearHistory();
+    this.render();
+    HomeScreen.refresh();
+    showToast('Historique effacé');
+  }
+};
+
+/* ══════════════════════════════════════════
+   BIOMÉTRIE — WebAuthn (empreinte / Face ID)
+══════════════════════════════════════════ */
+const Biometric = {
+  CRED_KEY: 'qrc_bio_cred',
+
+  isSupported() {
+    return !!(window.PublicKeyCredential && navigator.credentials?.create);
+  },
+
+  async register() {
+    if (!this.isSupported()) throw new Error('WebAuthn non disponible sur cet appareil');
+    const userId   = Auth.user?.id || ('qrc-' + Date.now());
+    const userName = Auth.user?.email || 'utilisateur@qrcertify';
+    const rpId     = window.location.hostname || 'localhost';
+    const cred = await navigator.credentials.create({
+      publicKey: {
+        challenge: crypto.getRandomValues(new Uint8Array(32)),
+        rp: { name: 'QR CERTIFY', id: rpId },
+        user: {
+          id: new TextEncoder().encode(userId),
+          name: userName,
+          displayName: userName
+        },
+        pubKeyCredParams: [
+          { type: 'public-key', alg: -7  },
+          { type: 'public-key', alg: -257 }
+        ],
+        authenticatorSelection: {
+          authenticatorAttachment: 'platform',
+          requireResidentKey: false,
+          userVerification: 'required'
+        },
+        timeout: 60000,
+        attestation: 'none'
+      }
+    });
+    const credId = btoa(String.fromCharCode(...new Uint8Array(cred.rawId)));
+    localStorage.setItem(this.CRED_KEY, credId);
+    return true;
+  },
+
+  async verify() {
+    if (!this.isSupported()) throw new Error('WebAuthn non disponible');
+    const stored = localStorage.getItem(this.CRED_KEY);
+    if (!stored) throw new Error('Aucun identifiant enregistré');
+    const rawId = Uint8Array.from(atob(stored), c => c.charCodeAt(0));
+    await navigator.credentials.get({
+      publicKey: {
+        challenge: crypto.getRandomValues(new Uint8Array(32)),
+        allowCredentials: [{ id: rawId, type: 'public-key' }],
+        userVerification: 'required',
+        timeout: 60000
+      }
+    });
+    return true;
+  },
+
+  clear() { localStorage.removeItem(this.CRED_KEY); },
+
+  async toggle() {
+    const el  = document.getElementById('tog-biometric');
+    const sta = document.getElementById('bio-status');
+    if (!this.isSupported()) { showToast('Biométrie non disponible sur cet appareil'); return; }
+    const isOn = el?.classList.contains('on');
+    if (!isOn) {
+      try {
+        showToast('Placez votre doigt sur le capteur…');
+        await this.register();
+        el?.classList.add('on');
+        DB.setSetting('biometric', true);
+        if (sta) sta.textContent = '✓ Empreinte enregistrée — paramètres protégés';
+        showToast('Biométrie activée — paramètres protégés 🔒');
+      } catch(e) {
+        el?.classList.remove('on');
+        DB.setSetting('biometric', false);
+        showToast(e.name === 'NotAllowedError' ? 'Biométrie annulée' : 'Erreur : ' + (e.message || 'biométrie indisponible'));
+      }
+    } else {
+      this.clear();
+      el?.classList.remove('on');
+      DB.setSetting('biometric', false);
+      if (sta) sta.textContent = "Protéger l'accès aux paramètres";
+      showToast('Biométrie désactivée');
+    }
+  },
+
+  // Appeler avant d'afficher Paramètres — renvoie false si refusé
+  async guardSettings() {
+    if (!DB.getSetting('biometric', false)) return true;
+    if (!localStorage.getItem(this.CRED_KEY)) return true;
+    try { await this.verify(); return true; }
+    catch(e) {
+      showToast(e.name === 'NotAllowedError' ? 'Biométrie annulée' : 'Accès refusé');
+      return false;
+    }
+  }
+};
+
+/* ══════════════════════════════════════════
+   PARAMÈTRES — toggles
+══════════════════════════════════════════ */
+function toggleSetting(key) {
+  const el = document.getElementById('tog-'+key);
+  if (!el) return;
+  const isOn   = el.classList.contains('on');
+  const newVal = !isOn;
+  el.classList.toggle('on', newVal);
+  DB.setSetting(key, newVal);
+
+  if (key === 'notif-scan' || key === 'notif-threat') {
+    if (newVal && 'Notification' in window && Notification.permission === 'default') {
+      Notification.requestPermission().then(p => {
+        const banner = document.getElementById('notif-permission-banner');
+        if (p !== 'granted') {
+          el.classList.remove('on'); DB.setSetting(key, false);
+          if (banner) banner.style.display = 'flex';
+          showToast('Autorisez les notifications dans les paramètres Android');
+        } else {
+          if (banner) banner.style.display = 'none';
+          showToast('Notifications activées');
+          new Notification('✅ QR CERTIFY — Notifications actives', {
+            body: 'Vous recevrez des alertes après chaque scan suspect.',
+            icon: '/icon-192.png', tag: 'qrc-test'
+          });
+        }
+      });
+    } else if (newVal && Notification.permission === 'denied') {
+      el.classList.remove('on'); DB.setSetting(key, false);
+      const banner = document.getElementById('notif-permission-banner');
+      if (banner) banner.style.display = 'flex';
+      showToast('Notifications bloquées — autorisez dans les paramètres Android');
+    } else {
+      showToast(newVal ? 'Notifications activées' : 'Notifications désactivées');
+    }
+    return;
+  }
+
+  if (key === 'turbo') {
+    showToast(newVal ? 'Mode Turbo activé ⚡' : 'Mode Turbo désactivé');
+    return;
+  }
+}
+
+function loadSettingsState() {
+  ['biometric','turbo','notif-scan','notif-threat'].forEach(k => {
+    const el = document.getElementById('tog-'+k);
+    if (!el) return;
+    const defaults = { biometric: false, turbo: false, 'notif-scan': true, 'notif-threat': true };
+    el.classList.toggle('on', DB.getSetting(k, defaults[k] ?? false));
+  });
+  const sta = document.getElementById('bio-status');
+  if (sta && DB.getSetting('biometric', false) && localStorage.getItem(Biometric.CRED_KEY)) {
+    sta.textContent = '✓ Empreinte enregistrée — paramètres protégés';
+  }
+  if ('Notification' in window && Notification.permission === 'denied') {
+    const b = document.getElementById('notif-permission-banner');
+    if (b) b.style.display = 'flex';
+  }
+}
+
+function exportLogs() {
+  const h = DB.history();
+  if (!h.length) { showToast('Aucun log à exporter'); return; }
+  const csv = 'Date,URL,Domaine,Statut,Score\n' + h.map(i=>`${i.date},"${i.url}","${i.domain||''}",${i.status},${i.score}`).join('\n');
+  const a = document.createElement('a');
+  a.href = 'data:text/csv;charset=utf-8,'+encodeURIComponent(csv);
+  a.download = 'qrcertify-logs.csv';
+  a.click();
+  showToast('Export CSV téléchargé');
+}
+
+/* ══════════════════════════════════════════
+   RÉSULTAT — construction HTML
+══════════════════════════════════════════ */
+function buildResult(data) {
+  if (data.loading) {
+    return `
+    <div style="flex-shrink:0;padding:48px 20px 16px;background:rgba(26,58,92,.97);display:flex;align-items:center;gap:12px">
+      <button class="icon-btn" onclick="Nav.back()"><span class="material-symbols-outlined">arrow_back</span></button>
+      <span style="font-family:'Manrope',sans-serif;font-weight:700;color:#fff;font-size:18px">Analyse en cours…</span>
+    </div>
+    <div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:16px;padding:32px">
+      <div style="width:64px;height:64px;border-radius:50%;border:4px solid #eceef1;border-top-color:#316bf3;animation:spin 1s linear infinite"></div>
+      <p style="color:#73777f;font-size:14px;text-align:center">Vérification VirusTotal en cours…<br>Cela peut prendre quelques secondes.</p>
+    </div>
+    <style>@keyframes spin{to{transform:rotate(360deg)}}</style>`;
+  }
+
+  const c = statusCfg(data.status);
+  const cols = {ok:'#1a7a40',warning:'#7a4f00',danger:'#ba1a1a'};
+  const bgs  = {ok:'#d4f4e2',warning:'#fef3c7',danger:'#ffdad6'};
+  const flagsHtml = (data.flags||[]).map(f=>
+    `<div style="display:flex;align-items:center;gap:10px;padding:11px 13px;border-radius:12px;background:${bgs[f.t]||'#eceef1'}">
+      <span class="material-symbols-outlined" style="color:${cols[f.t]||'#73777f'};font-size:18px">${f.icon}</span>
+      <span style="font-size:13px;font-weight:500;color:${cols[f.t]||'#43474e'}">${f.msg}</span>
+    </div>`
+  ).join('');
+
+  const sourceLabel = data.source === 'virustotal'
+    ? '<span style="background:#d4f4e2;color:#1a7a40;font-size:11px;font-weight:700;padding:3px 8px;border-radius:6px">✓ VirusTotal</span>'
+    : '<span style="background:#eceef1;color:#73777f;font-size:11px;font-weight:600;padding:3px 8px;border-radius:6px">Analyse locale</span>';
+
+  const cat = data.certCategory ? (CATEGORIES[data.certCategory] || CATEGORIES.other) : null;
+  const catBadge = cat
+    ? `<span style="display:inline-flex;align-items:center;gap:4px;background:${cat.bg};color:${cat.color};font-size:11px;font-weight:700;padding:3px 10px;border-radius:6px">
+        <span class="material-symbols-outlined" style="font-size:13px">${cat.icon}</span>${cat.label}
+       </span>`
+    : '';
+
+  const vtErrorBanner = data.vtError
+    ? `<div style="background:#fef3c7;border-radius:12px;padding:10px 14px;font-size:12px;color:#7a4f00;display:flex;align-items:center;gap:8px">
+        <span class="material-symbols-outlined" style="font-size:16px">warning</span>
+        VirusTotal inaccessible — résultat basé sur l'analyse locale uniquement.
+       </div>` : '';
+
+  const copyUrlSid = Store.set({ url: data.url });
+
+  return `
+  <div style="flex-shrink:0;padding:48px 20px 16px;background:rgba(26,58,92,.97);display:flex;align-items:center;gap:12px">
+    <button class="icon-btn" onclick="Nav.back()"><span class="material-symbols-outlined">arrow_back</span></button>
+    <span style="font-family:'Manrope',sans-serif;font-weight:700;color:#fff;font-size:18px">Résultat d'analyse</span>
+  </div>
+  <div class="scroll" style="padding:16px;display:flex;flex-direction:column;gap:12px">
+    <!-- Status card -->
+    <div style="border-radius:24px;padding:24px;background:${c.dark};text-align:center;position:relative;overflow:hidden">
+      <div style="position:absolute;inset:0;background:radial-gradient(circle at 50% 20%,${c.color}22,transparent 65%)"></div>
+      <div style="position:relative">
+        <div style="position:relative;display:inline-flex;margin-bottom:14px">
+          <div style="position:absolute;inset:-8px;border-radius:50%;border:2px solid ${c.color}30;animation:pulse 2s ease-out infinite"></div>
+          <div style="width:76px;height:76px;border-radius:50%;background:${c.color}22;border:2px solid ${c.color}55;display:flex;align-items:center;justify-content:center">
+            <span class="material-symbols-outlined" style="color:${c.color};font-size:38px;font-variation-settings:'FILL' 1">${c.icon}</span>
+          </div>
+        </div>
+        <div style="font-family:'Manrope',sans-serif;font-weight:800;color:#fff;font-size:22px;margin-bottom:6px">${c.headline}</div>
+        <div style="color:${c.color};font-size:13px;font-weight:500;margin-bottom:18px">${c.sub}</div>
+        <div style="display:flex;justify-content:center;gap:16px">
+          <div style="text-align:center">
+            <div style="width:56px;height:56px;border-radius:50%;background:${c.color}22;border:3px solid ${c.color};display:flex;align-items:center;justify-content:center;margin:0 auto">
+              <span style="font-family:'Manrope',sans-serif;font-weight:800;color:${c.color};font-size:18px">${data.score}</span>
+            </div>
+            <div style="color:rgba(255,255,255,.6);font-size:11px;margin-top:4px">Score</div>
+          </div>
+          <div style="text-align:center">
+            <div style="width:56px;height:56px;border-radius:50%;background:rgba(26,122,64,.2);border:3px solid rgba(26,122,64,.5);display:flex;align-items:center;justify-content:center;margin:0 auto">
+              <span style="font-family:'Manrope',sans-serif;font-weight:800;color:#4ade80;font-size:18px">${(data.flags||[]).filter(f=>f.t==='ok').length}</span>
+            </div>
+            <div style="color:rgba(255,255,255,.6);font-size:11px;margin-top:4px">OK</div>
+          </div>
+          <div style="text-align:center">
+            <div style="width:56px;height:56px;border-radius:50%;background:rgba(186,26,26,.2);border:3px solid rgba(186,26,26,.4);display:flex;align-items:center;justify-content:center;margin:0 auto">
+              <span style="font-family:'Manrope',sans-serif;font-weight:800;color:#f87171;font-size:18px">${(data.flags||[]).filter(f=>f.t==='danger').length}</span>
+            </div>
+            <div style="color:rgba(255,255,255,.6);font-size:11px;margin-top:4px">Risques</div>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- URL -->
+    <div style="background:#fff;border:1px solid #eceef1;border-radius:16px;padding:14px 16px">
+      <div style="font-size:11px;font-weight:600;text-transform:uppercase;letter-spacing:.08em;color:#73777f;margin-bottom:8px">URL analysée</div>
+      <div style="display:flex;align-items:flex-start;gap:10px">
+        <span class="material-symbols-outlined" style="color:#0051d5;font-size:20px;margin-top:2px;flex-shrink:0">link</span>
+        <div style="flex:1;min-width:0">
+          <div style="font-size:13px;font-weight:600;color:#191c1e;word-break:break-all">${data.url}</div>
+          <div style="font-size:12px;color:#73777f;margin-top:3px">${data.domain}</div>
+        </div>
+        <button onclick="navigator.clipboard?.writeText(Store.get(${copyUrlSid}).url).then(()=>showToast('Copié !'))" style="background:none;border:none;cursor:pointer;flex-shrink:0;padding:4px">
+          <span class="material-symbols-outlined" style="color:#b0b5bf;font-size:22px">content_copy</span>
+        </button>
+      </div>
+    </div>
+
+    ${vtErrorBanner}
+
+    <!-- Détails -->
+    <div>
+      <div style="display:flex;align-items:center;justify-content:space-between;margin-bottom:8px">
+        <div style="font-family:'Manrope',sans-serif;font-weight:700;font-size:14px;color:#191c1e">Détails de l'analyse</div>
+        <div style="display:flex;align-items:center;gap:6px;flex-wrap:wrap">${catBadge}${sourceLabel}</div>
+      </div>
+      <div style="display:flex;flex-direction:column;gap:7px">${flagsHtml}</div>
+    </div>
+
+    <!-- Bouton certifier : admin = certifier globalement / user = sauvegarder en favori -->
+    ${Auth.user ? `
+    <button class="btn btn-full press" onclick="CertifiedLinks.openSave()" style="background:${Auth.isAdmin ? 'linear-gradient(135deg,#1a3a5c,#2a6099)' : 'linear-gradient(135deg,#1a7a40,#37b85c)'};color:#fff">
+      <span class="material-symbols-outlined" style="font-size:18px">${Auth.isAdmin ? 'verified_user' : 'bookmark_add'}</span>${Auth.isAdmin ? 'Certifier globalement' : 'Sauvegarder dans mes favoris'}
+    </button>` : ''}
+
+    <!-- Votes communautaires -->
+    ${Auth.user ? '<div id="vote-section" style="background:#fff;border:1px solid #eceef1;border-radius:16px;padding:14px 16px;color:#b0b5bf;font-size:13px;text-align:center">Chargement des avis…</div>' : ''}
+
+    <!-- Actions -->
+    <div style="display:grid;grid-template-columns:1fr 1fr;gap:10px;padding-top:4px">
+      <button class="btn btn-secondary press" onclick="Nav.go('scanner')">
+        <span class="material-symbols-outlined" style="font-size:18px">qr_code_scanner</span>Scanner encore
+      </button>
+      <button class="btn btn-primary press" onclick="Nav.go('home')">
+        <span class="material-symbols-outlined" style="font-size:18px">home</span>Accueil
+      </button>
+    </div>
+    <div style="height:8px"></div>
+  </div>`;
+}
+
+/* ══════════════════════════════════════════
+   SMS — Vérificateur de SMS suspects
+══════════════════════════════════════════ */
+
+// Helper pour sauvegarder depuis l'écran SMS
+function smsSave(sid) {
+  const item = Store.get(sid);
+  if (item) { CertifiedLinks._current = item; CertifiedLinks.openSave(); }
+}
+
+const SMSScreen = {
+
+  // Exemples pré-remplis
+  _examples: {
+    chronopost: 'CHRONOPOST: Votre colis N°CP847291 est en attente. Des frais de douane de 1,99€ sont dus. Réglez maintenant pour éviter le retour : https://chronopost-livraison-secure.com/payer',
+    caf:        'CAF - Avis de paiement : Vous avez un remboursement de 187€ en attente. Validez vos coordonnées bancaires avant le 30/04 : https://caf-remboursement-gov.fr/validation',
+    amende:     'Avis d\'infraction N°AM2024-88421. Amende de 45€ à régler sous 72h pour éviter une majoration. Paiement en ligne : https://amendes-radars-fr.com/payer'
+  },
+
+  loadExample(key) {
+    const txt = this._examples[key];
+    if (!txt) return;
+    const el = document.getElementById('sms-input');
+    if (el) { el.value = txt; el.focus(); }
+    document.getElementById('sms-results').innerHTML = '';
+  },
+
+  async analyze() {
+    const text   = document.getElementById('sms-input')?.value.trim();
+    const resEl  = document.getElementById('sms-results');
+    const exEl   = document.getElementById('sms-examples');
+    const btn    = document.getElementById('sms-analyze-btn');
+
+    if (!text) { showToast('Collez d\'abord le texte du SMS'); return; }
+
+    // Extraire les URLs
+    const urls = this._extractUrls(text);
+
+    if (!urls.length) {
+      resEl.innerHTML = `
+        <div style="background:#fff;border:1px solid #eceef1;border-radius:16px;padding:24px;text-align:center">
+          <span class="material-symbols-outlined" style="font-size:44px;color:#b0b5bf;display:block;margin-bottom:10px">link_off</span>
+          <div style="font-size:14px;font-weight:600;color:#43474e">Aucun lien détecté</div>
+          <div style="font-size:13px;color:#73777f;margin-top:6px">Ce SMS ne contient pas d'URL. Il peut quand même être suspect (numéro inconnu, ton alarmiste…).</div>
+        </div>`;
+      return;
+    }
+
+    // Clé VirusTotal disponible ?
+    const vtKey = DB.getApiKey();
+
+    // Feedback visuel — chargement
+    if (exEl) exEl.style.display = 'none';
+    btn.disabled = true;
+    btn.innerHTML = '<span class="material-symbols-outlined" style="font-size:18px;animation:spin 1s linear infinite">hourglass_top</span>Analyse en cours…';
+    resEl.innerHTML = `
+      <div style="text-align:center;padding:32px;color:#73777f;font-size:14px">
+        <div style="width:44px;height:44px;border-radius:50%;border:4px solid #eceef1;border-top-color:#316bf3;animation:spin 1s linear infinite;margin:0 auto 14px"></div>
+        ${vtKey ? 'Interrogation VirusTotal…' : 'Analyse locale en cours…'}
+      </div>`;
+
+    // Analyser chaque URL
+    const results = [];
+    for (const url of urls) {
+      const local = Verifier.analyzeLocal(url);
+      let result  = { ...local };
+
+      if (vtKey) {
+        try {
+          const vt  = await Verifier.analyzeVT(url, vtKey);
+          result    = Verifier._merge(local, vt);
+          result.vtData = vt;
+        } catch(e) {
+          console.error('[SMSScreen] VT error for', url, e);
+          result.vtError = true;
+        }
+      }
+
+      results.push(result);
+      DB.addScan(result);
+    }
+
+    // Rendre les résultats
+    resEl.innerHTML = results.map(r => this._buildCard(r, !vtKey)).join('');
+    if (exEl) exEl.style.display = 'block';
+    btn.disabled = false;
+    btn.innerHTML = '<span class="material-symbols-outlined" style="font-size:18px">manage_search</span>Analyser le SMS';
+  },
+
+  // Extraction d'URLs par regex
+  _extractUrls(text) {
+    const regex = /https?:\/\/[^\s<>"{}|\\^`\[\]]+/gi;
+    const raw   = text.match(regex) || [];
+    // Nettoyer la ponctuation finale et dédupliquer
+    const clean = raw.map(u => u.replace(/[.,;:!?)]+$/, ''));
+    return [...new Set(clean)];
+  },
+
+  // Carte résultat pour un lien
+  _buildCard(r, noVtKey) {
+    const c   = statusCfg(r.status);
+    const sid = Store.set(r);
+    const vtBadge = r.vtData
+      ? `<div style="display:flex;align-items:center;gap:6px;font-size:12px;color:#73777f;padding:8px 12px;background:#f7f9fc;border-radius:10px">
+           <span class="material-symbols-outlined" style="font-size:16px;color:${r.vtData.malicious > 0 ? '#ba1a1a' : '#1a7a40'}">
+             ${r.vtData.malicious > 0 ? 'gpp_bad' : 'verified_user'}
+           </span>
+           <span>VirusTotal : <b style="color:${r.vtData.malicious > 0 ? '#ba1a1a' : r.vtData.suspicious > 0 ? '#7a4f00' : '#1a7a40'}">
+             ${r.vtData.malicious > 0
+               ? r.vtData.malicious + ' moteur(s) ont détecté une menace'
+               : r.vtData.suspicious > 0
+                 ? r.vtData.suspicious + ' suspect(s) signalé(s)'
+                 : 'Aucune menace détectée'}
+           </b> sur ${r.vtData.total} moteurs</span>
+         </div>`
+      : r.vtError
+        ? `<div style="font-size:12px;color:#ba1a1a;padding:8px 12px;background:#fff5f5;border-radius:10px">⚠️ VirusTotal indisponible — analyse locale uniquement</div>`
+        : noVtKey
+          ? `<div style="font-size:12px;color:#73777f;padding:8px 12px;background:#f7f9fc;border-radius:10px;display:flex;align-items:center;gap:6px">
+               <span class="material-symbols-outlined" style="font-size:15px">key</span>
+               Ajoutez une clé VirusTotal dans <b>Paramètres</b> pour l'analyse approfondie
+             </div>`
+          : '';
+
+    return `
+      <div style="background:#fff;border:2px solid ${c.color}44;border-radius:18px;padding:16px;display:flex;flex-direction:column;gap:10px;margin-bottom:4px">
+
+        <!-- En-tête statut -->
+        <div style="display:flex;align-items:center;justify-content:space-between">
+          <div style="display:flex;align-items:center;gap:10px">
+            <div style="width:36px;height:36px;border-radius:12px;background:${c.bg};display:flex;align-items:center;justify-content:center;flex-shrink:0">
+              <span class="material-symbols-outlined" style="color:${c.color};font-size:20px;font-variation-settings:'FILL' 1">${c.icon}</span>
+            </div>
+            <div>
+              <div style="font-size:14px;font-weight:700;color:${c.color}">${c.headline}</div>
+              <div style="font-size:11px;color:#73777f">Score ${r.score}/100</div>
+            </div>
+          </div>
+          <span style="background:${c.bg};color:${c.color};font-size:11px;font-weight:700;padding:4px 10px;border-radius:99px">${c.label}</span>
+        </div>
+
+        <!-- URL détectée -->
+        <div style="background:#f7f9fc;border-radius:10px;padding:10px 12px;font-size:12px;color:#43474e;word-break:break-all;font-family:monospace">${r.url}</div>
+
+        <!-- Badge VirusTotal -->
+        ${vtBadge}
+
+        <!-- Actions -->
+        <div style="display:grid;grid-template-columns:1fr 1fr;gap:8px;margin-top:2px">
+          <button onclick="Nav.go('result', Store.get(${sid}))" class="btn btn-secondary press" style="font-size:12px;padding:10px;gap:4px">
+            <span class="material-symbols-outlined" style="font-size:15px">open_in_new</span>Détails
+          </button>
+          ${Auth.user ? `
+          <button onclick="smsSave(${sid})" class="btn press" style="font-size:12px;padding:10px;background:#f0f4ff;border:1px solid #c7d7f5;color:#1a3a5c;border-radius:12px;display:flex;align-items:center;justify-content:center;gap:4px">
+            <span class="material-symbols-outlined" style="font-size:15px">bookmark_add</span>Sauvegarder
+          </button>` : `
+          <button onclick="Nav.go('auth')" class="btn press" style="font-size:12px;padding:10px;background:#f0f4ff;border:1px solid #c7d7f5;color:#1a3a5c;border-radius:12px;display:flex;align-items:center;justify-content:center;gap:4px">
+            <span class="material-symbols-outlined" style="font-size:15px">login</span>Connexion
+          </button>`}
+        </div>
+      </div>`;
+  }
+};
+
+/* ══════════════════════════════════════════
+   NEWS ARNAQUES — RSS automatique
+══════════════════════════════════════════ */
+const NewsScreen = {
+  _cache:     null,
+  _cacheTime: 0,
+  _TTL:       30 * 60 * 1000, // 30 minutes
+  _filter:    'all',
+  _loading:   false,
+
+  // Appelé par Nav._sideEffects
+  async render() {
+    const expired = (Date.now() - this._cacheTime) > this._TTL;
+    if (this._cache && !expired) { this._renderList(); return; }
+    await this._fetchAll();
+  },
+
+  async refresh() {
+    this._cache     = null;
+    this._cacheTime = 0;
+    await this._fetchAll();
+  },
+
+  async _fetchAll() {
+    if (this._loading) return;
+    this._loading = true;
+    const list = document.getElementById('news-list');
+    if (list) list.innerHTML = `
+      <div style="text-align:center;padding:48px 0;color:#73777f">
+        <div style="width:36px;height:36px;border-radius:50%;border:3px solid #eceef1;border-top-color:#316bf3;animation:spin 1s linear infinite;margin:0 auto 12px"></div>
+        Chargement des actualités…
+      </div>`;
+
+    // Alertes de secours grand public — affichées si aucun flux RSS ne répond
+    const FALLBACK_ALERTS = [
+      {
+        title: 'Arnaque : faux SMS bpost — votre colis est bloqué',
+        desc: 'Des SMS imitent bpost et demandent de payer des frais de douane pour débloquer un colis. Le lien mène à un faux site qui vole vos coordonnées bancaires.',
+        fullDesc: 'Des SMS imitent bpost et demandent de payer des frais de douane pour débloquer un colis. Le lien mène à un faux site qui vole vos coordonnées bancaires.\n\n🛡️ Comment vous protéger :\n• Allez directement sur bpost.be pour suivre votre colis\n• Ne cliquez jamais sur un lien reçu par SMS\n• bpost ne demande jamais de paiement par SMS',
+        source: '🇧🇪 Safeonweb.be', color: '#000099', bg: '#dde6ff', id: 'safeonweb', country: 'be',
+        link: 'https://safeonweb.be', rawDate: new Date().toISOString(), isFallback: true, tags: ['arnaques','sms']
+      },
+      {
+        title: 'Arnaque : faux SMS itsme — vérification de compte',
+        desc: 'Des messages prétendent que votre compte itsme doit être vérifié d\'urgence et renvoient vers un faux site pour voler vos identifiants.',
+        fullDesc: 'Des messages prétendent que votre compte itsme doit être vérifié d\'urgence et renvoient vers un faux site pour voler vos identifiants.\n\n🛡️ Comment vous protéger :\n• itsme ne vous enverra jamais un SMS pour vérifier votre compte\n• Accédez à itsme uniquement via l\'application officielle\n• Signalez le message sur safeonweb.be/fr/report',
+        source: '🇧🇪 Safeonweb.be', color: '#000099', bg: '#dde6ff', id: 'safeonweb', country: 'be',
+        link: 'https://safeonweb.be', rawDate: new Date().toISOString(), isFallback: true, tags: ['arnaques','phishing']
+      },
+      {
+        title: 'Arnaque : faux appel de votre banque — fraude détectée',
+        desc: 'Des escrocs appellent en se faisant passer pour votre banque et prétendent bloquer une fraude en cours. Ils vous demandent vos codes et mots de passe.',
+        fullDesc: 'Des escrocs appellent en se faisant passer pour votre banque et prétendent bloquer une fraude en cours. Ils vous demandent vos codes et mots de passe.\n\n🛡️ Comment vous protéger :\n• Votre banque ne demande JAMAIS vos codes par téléphone\n• Raccrochez et rappelez le numéro officiel de votre banque\n• Signalez l\'appel à Card Stop : 078 170 170',
+        source: '🇧🇪 Safeonweb.be', color: '#000099', bg: '#dde6ff', id: 'safeonweb', country: 'be',
+        link: 'https://safeonweb.be', rawDate: new Date().toISOString(), isFallback: true, tags: ['arnaques','sms']
+      },
+      {
+        title: 'Arnaque : faux e-mail EDF — facture impayée',
+        desc: 'Des e-mails imitant EDF réclament le paiement urgent d\'une facture impayée sous peine de coupure. Le lien mène à un faux formulaire de paiement.',
+        fullDesc: 'Des e-mails imitant EDF réclament le paiement urgent d\'une facture impayée sous peine de coupure. Le lien mène à un faux formulaire de paiement.\n\n🛡️ Comment vous protéger :\n• Connectez-vous à votre espace client EDF directement sur edf.fr\n• EDF ne menace jamais de coupure par e-mail sans courrier préalable\n• Signalez le message sur cybermalveillance.gouv.fr',
+        source: '🇫🇷 Cybermalveillance', color: '#002395', bg: '#e8ecff', id: 'cybermaly', country: 'fr',
+        link: 'https://www.cybermalveillance.gouv.fr', rawDate: new Date().toISOString(), isFallback: true, tags: ['arnaques','phishing']
+      },
+      {
+        title: 'Arnaque : faux SMS Ameli — remboursement disponible',
+        desc: 'Des SMS imitent l\'Assurance Maladie et invitent à cliquer pour recevoir un remboursement. Le faux site récupère vos données personnelles et bancaires.',
+        fullDesc: 'Des SMS imitent l\'Assurance Maladie et invitent à cliquer pour recevoir un remboursement. Le faux site récupère vos données personnelles et bancaires.\n\n🛡️ Comment vous protéger :\n• Ameli n\'envoie jamais de lien de remboursement par SMS\n• Connectez-vous uniquement sur ameli.fr\n• Transférez le SMS suspect au 33700',
+        source: '🇫🇷 Cybermalveillance', color: '#002395', bg: '#e8ecff', id: 'cybermaly', country: 'fr',
+        link: 'https://www.cybermalveillance.gouv.fr', rawDate: new Date().toISOString(), isFallback: true, tags: ['arnaques','sms']
+      },
+      {
+        title: 'Arnaque : faux policiers — amende ou arrestation',
+        desc: 'Des escrocs se font passer pour la police ou le parquet et exigent un paiement immédiat pour éviter une arrestation ou effacer une amende.',
+        fullDesc: 'Des escrocs se font passer pour la police ou le parquet et exigent un paiement immédiat pour éviter une arrestation ou effacer une amende.\n\n🛡️ Comment vous protéger :\n• La police ne demande JAMAIS d\'argent par téléphone ou virement\n• Raccrochez immédiatement\n• Appelez le 101 (Belgique) ou le 17 (France) pour vérifier',
+        source: '🇧🇪 Safeonweb.be', color: '#000099', bg: '#dde6ff', id: 'safeonweb', country: 'be',
+        link: 'https://safeonweb.be', rawDate: new Date().toISOString(), isFallback: true, tags: ['arnaques','sms']
+      }
+    ];
+
+    const PROXY = 'https://api.codetabs.com/v1/proxy?quest=';
+    const FEEDS = [
+      { url: 'https://www.safeonweb.be/fr/rss.xml',                    source: '🇧🇪 Safeonweb.be',    color: '#000099', bg: '#dde6ff', id: 'safeonweb',      country: 'be' },
+      { url: 'https://economie.fgov.be/fr/rss.xml',                    source: '🇧🇪 SPF Économie',    color: '#006400', bg: '#d4f4e2', id: 'spf',            country: 'be' },
+      { url: 'https://www.cybermalveillance.gouv.fr/feed/',             source: '🇫🇷 Cybermalveillance', color: '#002395', bg: '#e8ecff', id: 'cybermaly',   country: 'fr' },
+      { url: 'https://www.signal-arnaques.com/scam/list.rss',           source: '🇫🇷 Signal-Arnaques', color: '#c0392b', bg: '#ffdad6', id: 'signalarnaques', country: 'fr' }
+    ];
+
+    const items = [];
+    await Promise.allSettled(FEEDS.map(async feed => {
+      try {
+        const res = await Promise.race([
+          fetch(PROXY + encodeURIComponent(feed.url)),
+          new Promise((_, r) => setTimeout(() => r(new Error('timeout')), 8000))
+        ]);
+        const xml = await res.text();
+        items.push(...this._parseRSS(xml, feed));
+      } catch {}
+    }));
+
+    items.sort((a, b) => new Date(b.rawDate) - new Date(a.rawDate));
+
+    // Si aucun flux RSS n'a répondu → injecter les 6 alertes de secours
+    if (!items.length) items = FALLBACK_ALERTS;
+
+    this._cache     = items;
+    this._cacheTime = Date.now();
+    this._loading   = false;
+    this._renderList();
+  },
+
+  _parseRSS(xml, feed) {
+    const items = [];
+    const regex = /<item>([\s\S]*?)<\/item>/g;
+    let m;
+    while ((m = regex.exec(xml)) !== null) {
+      const get = tag => {
+        const r = m[1].match(new RegExp(
+          `<${tag}[^>]*><!\\[CDATA\\[([\\s\\S]*?)\\]\\]><\\/${tag}>|<${tag}[^>]*>([\\s\\S]*?)<\\/${tag}>`, 'i'
+        ));
+        return r ? (r[1] || r[2] || '').trim() : '';
+      };
+      const title = get('title');
+      if (!title) continue;
+      const rawDate = get('pubDate');
+      const rawDesc = get('description').replace(/<[^>]+>/g, '').replace(/&[^;]+;/gi,'').trim();
+      const desc    = rawDesc.slice(0, 180); // aperçu court pour la liste
+      // sourceId = pour le filtre, pas d'id unique → Store utilisera Date.now()
+      // Tags automatiques selon mots-clés du titre/description
+      const txt = (title + ' ' + rawDesc).toLowerCase();
+      const tags = [];
+      if (/arnaque|fraude|escroquer|tromperie|vol/.test(txt)) tags.push('arnaques');
+      if (/phishing|hameçon|faux.*mail|faux.*lien|faux.*site/.test(txt)) tags.push('phishing');
+      if (/sms|appel|téléphone|phone|vocal|message.*suspect/.test(txt)) tags.push('sms');
+      items.push({ title, desc, fullDesc: rawDesc, link: get('link'), rawDate, source: feed.source, color: feed.color, bg: feed.bg, sourceId: feed.id, country: feed.country, tags });
+    }
+    return items.slice(0, 15);
+  },
+
+  openArticle(sid) {
+    const item = Store.get(sid);
+    if (!item) return;
+    const el = document.getElementById('article-content');
+    if (!el) return;
+
+    const date = item.rawDate
+      ? new Date(item.rawDate).toLocaleDateString('fr-FR', { day: '2-digit', month: 'long', year: 'numeric' })
+      : '';
+
+    // Affiche d'abord un écran de chargement
+    el.innerHTML = `
+      <div style="flex-shrink:0;padding:48px 20px 16px;background:rgba(26,58,92,.97);display:flex;align-items:center;gap:12px">
+        <button class="icon-btn" onclick="Nav.go('news')">
+          <span class="material-symbols-outlined">arrow_back</span>
+        </button>
+        <span style="font-family:'Manrope',sans-serif;font-weight:700;color:#fff;font-size:17px;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${item.source}</span>
+      </div>
+      <div style="flex:1;display:flex;flex-direction:column;align-items:center;justify-content:center;gap:14px;padding:32px">
+        <div style="width:48px;height:48px;border-radius:50%;border:3px solid #eceef1;border-top-color:#1a3a5c;animation:spin 1s linear infinite"></div>
+        <p style="color:#73777f;font-size:13px;text-align:center;margin:0">Chargement de l'article…</p>
+      </div>`;
+    Nav.go('article');
+
+    // Fetch le contenu de l'article via le proxy CORS
+    const PROXY = 'https://api.codetabs.com/v1/proxy?quest=';
+    Promise.race([
+      fetch(PROXY + encodeURIComponent(item.link)),
+      new Promise((_, r) => setTimeout(() => r(new Error('timeout')), 10000))
+    ])
+    .then(r => r.text())
+    .then(html => {
+      const body = NewsScreen._extractArticleBody(html);
+      el.innerHTML = `
+        <div style="flex-shrink:0;padding:48px 20px 16px;background:rgba(26,58,92,.97);display:flex;align-items:center;gap:12px">
+          <button class="icon-btn" onclick="Nav.go('news')">
+            <span class="material-symbols-outlined">arrow_back</span>
+          </button>
+          <span style="font-family:'Manrope',sans-serif;font-weight:700;color:#fff;font-size:17px;flex:1;overflow:hidden;text-overflow:ellipsis;white-space:nowrap">${item.source}</span>
+          <span style="background:${item.bg};color:${item.color};font-size:10px;font-weight:700;padding:3px 9px;border-radius:6px;flex-shrink:0">${item.source}</span>
+        </div>
+        <div class="scroll" style="padding:20px 16px 40px">
+          ${date ? `<div style="font-size:12px;color:#73777f;font-weight:500;margin-bottom:10px">${date}</div>` : ''}
+          <h1 style="font-family:'Manrope',sans-serif;font-weight:800;font-size:21px;color:#191c1e;line-height:1.35;margin:0 0 18px">${item.title}</h1>
+          <div id="article-body" style="font-size:15px;color:#2d3142;line-height:1.75">${body}</div>
+        </div>`;
+    })
+    .catch(() => {
+      // Fallback : affiche le résumé RSS
+      el.innerHTML = `
+        <div style="flex-shrink:0;padding:48px 20px 16px;background:rgba(26,58,92,.97);display:flex;align-items:center;gap:12px">
+          <button class="icon-btn" onclick="Nav.go('news')">
+            <span class="material-symbols-outlined">arrow_back</span>
+          </button>
+          <span style="font-family:'Manrope',sans-serif;font-weight:700;color:#fff;font-size:17px;flex:1">${item.source}</span>
+        </div>
+        <div class="scroll" style="padding:20px 16px 40px;display:flex;flex-direction:column;gap:14px">
+          ${date ? `<div style="font-size:12px;color:#73777f;font-weight:500">${date}</div>` : ''}
+          <h1 style="font-family:'Manrope',sans-serif;font-weight:800;font-size:21px;color:#191c1e;line-height:1.35;margin:0">${item.title}</h1>
+          ${item.fullDesc
+            ? `<p style="font-size:15px;color:#43474e;line-height:1.7;margin:0">${item.fullDesc}</p>`
+            : ''}
+          <div style="background:#fef3c7;border-radius:12px;padding:12px 14px;font-size:13px;color:#7a4f00;display:flex;align-items:center;gap:8px">
+            <span class="material-symbols-outlined" style="font-size:16px;flex-shrink:0">wifi_off</span>
+            Article complet non disponible hors ligne.
+          </div>
+        </div>`;
+    });
+  },
+
+  // Extrait le corps principal d'un article HTML (algorithme densité pScore²/total)
+  _extractArticleBody(html) {
+    const doc = new DOMParser().parseFromString(html, 'text/html');
+    const SAFE = new Set(['HTML','HEAD','BODY']);
+
+    // 1. Supprimer scripts/styles uniquement
+    ['script','style','noscript','iframe'].forEach(tag => {
+      doc.querySelectorAll(tag).forEach(n => n.remove());
+    });
+
+    // 2. Scoring densité = pScore²/total
+    //    Favorise les blocs denses en paragraphes, pénalise les wrappers larges
+    let best = null, bestDensity = 0;
+    doc.querySelectorAll('div,article,section,main').forEach(el => {
+      if (SAFE.has(el.tagName)) return;
+      const cls = (el.className + ' ' + el.id).toLowerCase();
+      if (/comment|sidebar|widget|footer|header|menu|nav|cookie|popup|social|share|related|newsletter/.test(cls)) return;
+      let pScore = 0;
+      el.querySelectorAll('p').forEach(p => {
+        const t = p.textContent.trim();
+        if (t.length > 20) pScore += t.length;
+      });
+      if (pScore < 300) return;
+      const total = el.textContent.trim().length || 1;
+      const density = (pScore * pScore) / total;
+      if (density > bestDensity) { bestDensity = density; best = el; }
+    });
+
+    // 3. Fallback sélecteurs connus
+    if (!best) {
+      for (const sel of ['article','[itemprop="articleBody"]','.entry-content',
+        '.post-content','.article-content','.post-entry','main','#content']) {
+        const el = doc.querySelector(sel);
+        if (el && el.textContent.trim().length > 200) { best = el; break; }
+      }
+    }
+
+    // 4. Dernier recours
+    if (!best) best = doc.body;
+    if (!best) return '<p style="color:#73777f;font-style:italic">Contenu non disponible.</p>';
+
+    // 5. Nettoyer parasites internes
+    ['nav','header','footer','aside','form','[class*="related"]',
+     '[class*="newsletter"]','[class*="cookie"]','[class*="popup"]',
+     '[id*="comment"]'].forEach(sel => {
+      best.querySelectorAll(sel).forEach(n => { if (!SAFE.has(n.tagName)) n.remove(); });
+    });
+
+    // 6. Sanitiser attributs
+    best.querySelectorAll('*').forEach(el => {
+      ['onclick','onload','onerror','style','class','id',
+       'data-src','data-lazy','srcset'].forEach(a => el.removeAttribute(a));
+      if (el.tagName === 'IMG') {
+        const alt = el.getAttribute('alt') || '';
+        const em = doc.createElement('em');
+        em.textContent = alt ? '📷 ' + alt : '';
+        el.replaceWith(em);
+      }
+      if (el.tagName === 'A') {
+        el.removeAttribute('href');
+        el.removeAttribute('target');
+        el.removeAttribute('rel');
+      }
+    });
+
+    // 7. Style lecture inline
+    return best.innerHTML
+      .replace(/<h[1-3][^>]*>/gi, '<h3 style="font-family:Manrope,sans-serif;font-weight:800;font-size:17px;color:#191c1e;margin:20px 0 8px;line-height:1.3">')
+      .replace(/<\/h[1-3]>/gi, '</h3>')
+      .replace(/<h[4-6][^>]*>/gi, '<h4 style="font-weight:700;font-size:15px;color:#43474e;margin:14px 0 6px">')
+      .replace(/<\/h[4-6]>/gi, '</h4>')
+      .replace(/<p[^>]*>/gi, '<p style="margin:0 0 14px;line-height:1.75;color:#2d3142;font-size:15px">')
+      .replace(/<ul[^>]*>/gi, '<ul style="margin:0 0 14px;padding-left:20px">')
+      .replace(/<ol[^>]*>/gi, '<ol style="margin:0 0 14px;padding-left:20px">')
+      .replace(/<li[^>]*>/gi, '<li style="margin-bottom:8px;color:#2d3142;line-height:1.6">');
+  },
+
+  filter(f) {
+    this._filter = f;
+    document.querySelectorAll('.news-chip').forEach(chip => {
+      const active = chip.dataset.nf === f;
+      chip.style.background = active ? '#fff' : 'rgba(255,255,255,.18)';
+      chip.style.color       = active ? '#1a3a5c' : '#fff';
+    });
+    this._renderList();
+  },
+
+  _renderList() {
+    const list = document.getElementById('news-list');
+    if (!list) return;
+
+    let items = this._cache || [];
+    if (this._filter === 'be') {
+      items = items.filter(i => i.country === 'be');
+    } else if (this._filter === 'fr') {
+      items = items.filter(i => i.country === 'fr');
+    } else if (this._filter === 'arnaques') {
+      items = items.filter(i => (i.tags||[]).includes('arnaques') || /arnaque|fraude|escroq/i.test(i.title));
+    } else if (this._filter === 'phishing') {
+      items = items.filter(i => (i.tags||[]).includes('phishing') || /phishing|hameçon|faux.*mail/i.test(i.title));
+    } else if (this._filter === 'sms') {
+      items = items.filter(i => (i.tags||[]).includes('sms') || /sms|appel|téléphone|message/i.test(i.title));
+    }
+
+    if (!items.length) {
+      list.innerHTML = `
+        <div style="text-align:center;padding:48px 0;color:#73777f;font-size:14px">
+          <span class="material-symbols-outlined" style="font-size:48px;display:block;margin-bottom:12px;color:#b0b5bf">newspaper</span>
+          Aucune actualité disponible.<br>
+          <button onclick="NewsScreen.refresh()" style="margin-top:16px;padding:10px 20px;border-radius:12px;border:none;background:#1a3a5c;color:#fff;font-size:13px;font-weight:600;cursor:pointer">Réessayer</button>
+        </div>`;
+      return;
+    }
+
+    list.innerHTML = items.map(item => {
+      const sid  = Store.set(item);
+      const date = item.rawDate
+        ? new Date(item.rawDate).toLocaleDateString('fr-FR', { day: '2-digit', month: 'short', year: 'numeric' })
+        : '';
+      return `
+        <div class="news-card" onclick="NewsScreen.openArticle('${sid}')">
+          <div style="display:flex;align-items:center;gap:8px;margin-bottom:8px">
+            <span style="background:${esc(item.bg)};color:${esc(item.color)};font-size:10px;font-weight:700;padding:3px 9px;border-radius:6px;white-space:nowrap">${esc(item.source)}</span>
+            <span style="font-size:11px;color:#b0b5bf;margin-left:auto;white-space:nowrap">${esc(date)}</span>
+          </div>
+          <div style="font-size:14px;font-weight:700;color:#191c1e;line-height:1.4;margin-bottom:6px">${esc(item.title)}</div>
+          ${item.desc ? `<div style="font-size:12px;color:#73777f;line-height:1.5">${esc(item.desc)}…</div>` : ''}
+          <div style="display:flex;align-items:center;gap:4px;margin-top:10px;color:#b0b5bf;font-size:11px">
+            <span class="material-symbols-outlined" style="font-size:14px">open_in_new</span>
+            Lire l'article complet
+          </div>
+        </div>`;
+    }).join('');
+  }
+};
+
+/* ══════════════════════════════════════════
+   INIT
+══════════════════════════════════════════ */
+document.addEventListener('DOMContentLoaded', () => {
+  if ('serviceWorker' in navigator) navigator.serviceWorker.register('sw.js').catch(()=>{});
+
+  // Charger les états persistés
+  loadSettingsState();
+  Profile.refresh();
+
+  // Initialiser Supabase Auth
+  Auth.init();
+
+  // Splash 2s puis auth ou home selon connexion
+  setTimeout(async () => {
+    const { data } = await getSupa().auth.getSession();
+    if (data?.session?.user) {
+      Nav.go('home');
+      Nav.stack = ['home'];
+    } else {
+      Nav.go('login');
+      Nav.stack = ['login'];
+    }
+  }, 2000);
+});
+</script>
+</body>
+</html>
