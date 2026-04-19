@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no"/>
 <meta name="theme-color" content="#1a3a5c"/>
 <meta name="apple-mobile-web-app-capable" content="yes"/>
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data: blob: https:; connect-src 'self' https://*.supabase.co https://www.virustotal.com https://api.codetabs.com https://www.zataz.com https://www.undernews.fr https://www.cybermalveillance.gouv.fr https://www.cert.ssi.gouv.fr https://fonts.googleapis.com; worker-src 'self'; frame-src 'none'; object-src 'none';">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data: blob: https:; connect-src 'self' https://*.supabase.co https://www.virustotal.com https://api.codetabs.com https://www.safeonweb.be https://safeonweb.be https://www.zataz.com https://www.undernews.fr https://www.cybermalveillance.gouv.fr https://www.cert.ssi.gouv.fr https://fonts.googleapis.com; worker-src 'self'; frame-src 'none'; object-src 'none';">
 <title>QR CERTIFY</title>
 <link rel="manifest" href="manifest.json"/>
 <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@500;700;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet"/>
@@ -3330,55 +3330,78 @@ const NewsScreen = {
     // Alertes de secours grand public — affichées si aucun flux RSS ne répond
     const FALLBACK_ALERTS = [
       {
-        title: 'Arnaque : faux SMS bpost — votre colis est bloqué',
-        desc: 'Des SMS imitent bpost et demandent de payer des frais de douane pour débloquer un colis. Le lien mène à un faux site qui vole vos coordonnées bancaires.',
-        fullDesc: 'Des SMS imitent bpost et demandent de payer des frais de douane pour débloquer un colis. Le lien mène à un faux site qui vole vos coordonnées bancaires.\n\n🛡️ Comment vous protéger :\n• Allez directement sur bpost.be pour suivre votre colis\n• Ne cliquez jamais sur un lien reçu par SMS\n• bpost ne demande jamais de paiement par SMS',
+        title: '⚠️ Arnaque itsme® : ne confirmez aucune action que vous n\'avez pas initiée',
+        desc: 'Des criminels vous mettent la pression par téléphone pour que vous confirmiez de toute urgence une action dans l\'application itsme®. N\'acceptez rien que vous n\'avez pas demandé vous-même.',
+        fullDesc: 'Des criminels vous mettent la pression par téléphone pour que vous confirmiez de toute urgence une action dans l\'application itsme®.\n\n🛡️ Règle absolue :\n• N\'acceptez JAMAIS une demande itsme® que vous n\'avez pas initiée vous-même\n• Raccrochez immédiatement si quelqu\'un vous presse d\'accepter\n• Signalez sur suspect@safeonweb.be',
         source: '🇧🇪 Safeonweb.be', color: '#000099', bg: '#dde6ff', id: 'safeonweb', country: 'be',
-        link: 'https://safeonweb.be', rawDate: new Date().toISOString(), isFallback: true, tags: ['arnaques','sms']
+        link: 'https://safeonweb.be/fr/actualite/ne-confirmez-aucune-action-itsmer-si-vous-ne-lavez-pas-initiee-vous-meme',
+        rawDate: new Date('2026-04-14').toISOString(), isFallback: true, tags: ['arnaques','sms']
       },
       {
-        title: 'Arnaque : faux SMS itsme — vérification de compte',
-        desc: 'Des messages prétendent que votre compte itsme doit être vérifié d\'urgence et renvoient vers un faux site pour voler vos identifiants.',
-        fullDesc: 'Des messages prétendent que votre compte itsme doit être vérifié d\'urgence et renvoient vers un faux site pour voler vos identifiants.\n\n🛡️ Comment vous protéger :\n• itsme ne vous enverra jamais un SMS pour vérifier votre compte\n• Accédez à itsme uniquement via l\'application officielle\n• Signalez le message sur safeonweb.be/fr/report',
+        title: '⚠️ Fuite de données : Basic-Fit et Booking.com — vos infos peut-être exposées',
+        desc: 'Basic-Fit (~1 million de membres) et Booking.com ont signalé des incidents de sécurité. Des données clients auraient pu tomber entre de mauvaises mains. Soyez vigilant aux e-mails et SMS qui suivent.',
+        fullDesc: 'Basic-Fit et Booking.com ont tous deux signalé un incident de sécurité en avril 2026.\n\n🛡️ Comment réagir :\n• Changez vos mots de passe Basic-Fit et Booking.com\n• Méfiez-vous des e-mails ou SMS qui exploitent ces fuites pour vous piéger\n• Activez l\'authentification à deux facteurs sur vos comptes\n• Ne cliquez jamais sur un lien reçu après une fuite de données',
         source: '🇧🇪 Safeonweb.be', color: '#000099', bg: '#dde6ff', id: 'safeonweb', country: 'be',
-        link: 'https://safeonweb.be', rawDate: new Date().toISOString(), isFallback: true, tags: ['arnaques','phishing']
+        link: 'https://safeonweb.be/fr/actualite/attention-fuite-de-donnees-clients-chez-basic-fit-et-bookingcom',
+        rawDate: new Date('2026-04-13').toISOString(), isFallback: true, tags: ['arnaques','phishing']
       },
       {
-        title: 'Arnaque : faux appel de votre banque — fraude détectée',
-        desc: 'Des escrocs appellent en se faisant passer pour votre banque et prétendent bloquer une fraude en cours. Ils vous demandent vos codes et mots de passe.',
-        fullDesc: 'Des escrocs appellent en se faisant passer pour votre banque et prétendent bloquer une fraude en cours. Ils vous demandent vos codes et mots de passe.\n\n🛡️ Comment vous protéger :\n• Votre banque ne demande JAMAIS vos codes par téléphone\n• Raccrochez et rappelez le numéro officiel de votre banque\n• Signalez l\'appel à Card Stop : 078 170 170',
+        title: '⚠️ Faux SMS SPF Finances (Belgique) — frais impayés',
+        desc: 'Des SMS envoyés depuis le numéro 8850 imitent le SPF Finances et demandent de payer de prétendus frais via un lien frauduleux. Ne payez rien.',
+        fullDesc: 'Des SMS envoyés depuis le numéro 8850 imitent le SPF Finances et invitent à payer de prétendus frais impayés via un lien menant à un site frauduleux.\n\n🛡️ Comment vous protéger :\n• Le SPF Finances ne demande jamais de paiement par SMS\n• Ne cliquez pas sur le lien et supprimez le message\n• Transférez le SMS suspect au 8888 (numéro de signalement belge)\n• Consultez uniquement myminfin.be pour vos finances publiques',
         source: '🇧🇪 Safeonweb.be', color: '#000099', bg: '#dde6ff', id: 'safeonweb', country: 'be',
-        link: 'https://safeonweb.be', rawDate: new Date().toISOString(), isFallback: true, tags: ['arnaques','sms']
+        link: 'https://safeonweb.be/fr/actualite/sms-frauduleux-au-nom-du-spf-finances-en-circulation',
+        rawDate: new Date('2026-04-13').toISOString(), isFallback: true, tags: ['arnaques','sms']
       },
       {
-        title: 'Arnaque : faux e-mail EDF — facture impayée',
-        desc: 'Des e-mails imitant EDF réclament le paiement urgent d\'une facture impayée sous peine de coupure. Le lien mène à un faux formulaire de paiement.',
-        fullDesc: 'Des e-mails imitant EDF réclament le paiement urgent d\'une facture impayée sous peine de coupure. Le lien mène à un faux formulaire de paiement.\n\n🛡️ Comment vous protéger :\n• Connectez-vous à votre espace client EDF directement sur edf.fr\n• EDF ne menace jamais de coupure par e-mail sans courrier préalable\n• Signalez le message sur cybermalveillance.gouv.fr',
+        title: '⚠️ Phishing énergie : faux mails Engie/Fluvius — indemnité énergie',
+        desc: 'De nombreux mails frauduleux imitent votre fournisseur d\'énergie (Engie, Fluvius) et prétendent vous offrir une indemnité. C\'est une arnaque pour voler vos données bancaires.',
+        fullDesc: 'De nombreux mails de phishing circulent en se faisant passer pour votre fournisseur ou distributeur d\'énergie (Engie, Fluvius, etc.).\n\n🛡️ Comment vous protéger :\n• Connectez-vous directement sur le site officiel de votre fournisseur\n• Aucune prime énergie ne se demande via un lien dans un e-mail\n• Signalez le mail sur suspect@safeonweb.be\n• En cas de doute, appelez le service client de votre fournisseur',
+        source: '🇧🇪 Safeonweb.be', color: '#000099', bg: '#dde6ff', id: 'safeonweb', country: 'be',
+        link: 'https://safeonweb.be/fr/actualite/vous-avez-droit-une-indemnite-dans-le-cadre-de-votre-contrat-energie-mefiance',
+        rawDate: new Date('2026-04-07').toISOString(), isFallback: true, tags: ['arnaques','phishing']
+      },
+      {
+        title: '⚠️ Impôts 2026 : faux e-mails DGFiP — ne cliquez pas',
+        desc: 'Depuis le 9 avril, des e-mails frauduleux imitent les impôts et parlent de « remboursement » ou « d\'avis de recouvrement ». Les vrais mails des impôts viennent uniquement de @dgfip.finances.gouv.fr.',
+        fullDesc: 'Depuis l\'ouverture de la déclaration 2026, des e-mails frauduleux imitent la DGFiP (Direction Générale des Finances Publiques).\n\n🛡️ Comment vérifier :\n• L\'adresse de l\'expéditeur doit se terminer par @dgfip.finances.gouv.fr\n• Les sites officiels se terminent toujours par .gouv.fr\n• L\'administration fiscale ne demande JAMAIS vos coordonnées bancaires par e-mail\n• En cas de doute, connectez-vous directement sur impots.gouv.fr',
         source: '🇫🇷 Cybermalveillance', color: '#002395', bg: '#e8ecff', id: 'cybermaly', country: 'fr',
-        link: 'https://www.cybermalveillance.gouv.fr', rawDate: new Date().toISOString(), isFallback: true, tags: ['arnaques','phishing']
+        link: 'https://www.cybermalveillance.gouv.fr',
+        rawDate: new Date('2026-04-09').toISOString(), isFallback: true, tags: ['arnaques','phishing']
       },
       {
-        title: 'Arnaque : faux SMS Ameli — remboursement disponible',
-        desc: 'Des SMS imitent l\'Assurance Maladie et invitent à cliquer pour recevoir un remboursement. Le faux site récupère vos données personnelles et bancaires.',
-        fullDesc: 'Des SMS imitent l\'Assurance Maladie et invitent à cliquer pour recevoir un remboursement. Le faux site récupère vos données personnelles et bancaires.\n\n🛡️ Comment vous protéger :\n• Ameli n\'envoie jamais de lien de remboursement par SMS\n• Connectez-vous uniquement sur ameli.fr\n• Transférez le SMS suspect au 33700',
+        title: '⚠️ Arnaque au faux conseiller bancaire — 380 millions € de pertes en 2024',
+        desc: 'Des escrocs appellent en affichant le vrai numéro de votre banque (spoofing) et prétendent bloquer une fraude. Ils demandent vos codes de validation. Ne donnez jamais vos codes par téléphone.',
+        fullDesc: 'Le faux conseiller bancaire est l\'arnaque la plus coûteuse : 380 millions € de préjudice en 2024, en hausse de 159%.\n\nScénario type :\n1. Vous recevez un SMS signalant une opération suspecte\n2. Quelques minutes plus tard, un appel arrive avec le numéro officiel de votre banque\n3. L\'interlocuteur connaît votre nom et parfois votre IBAN\n4. Il vous demande de « valider » une opération pour bloquer la fraude → chaque validation déclenche un virement vers les escrocs\n\n🛡️ Règle absolue :\n• Votre banque ne demande JAMAIS vos codes ou mots de passe par téléphone\n• Raccrochez et rappelez le numéro officiel de votre banque\n• Belgique : Card Stop 078 170 170 | France : 3414',
         source: '🇫🇷 Cybermalveillance', color: '#002395', bg: '#e8ecff', id: 'cybermaly', country: 'fr',
-        link: 'https://www.cybermalveillance.gouv.fr', rawDate: new Date().toISOString(), isFallback: true, tags: ['arnaques','sms']
+        link: 'https://www.cybermalveillance.gouv.fr',
+        rawDate: new Date('2026-04-01').toISOString(), isFallback: true, tags: ['arnaques','sms']
       },
       {
-        title: 'Arnaque : faux policiers — amende ou arrestation',
-        desc: 'Des escrocs se font passer pour la police ou le parquet et exigent un paiement immédiat pour éviter une arrestation ou effacer une amende.',
-        fullDesc: 'Des escrocs se font passer pour la police ou le parquet et exigent un paiement immédiat pour éviter une arrestation ou effacer une amende.\n\n🛡️ Comment vous protéger :\n• La police ne demande JAMAIS d\'argent par téléphone ou virement\n• Raccrochez immédiatement\n• Appelez le 101 (Belgique) ou le 17 (France) pour vérifier',
+        title: '⚠️ Faux avocat : arnaque à l\'indemnisation pour victimes de fraude',
+        desc: 'Des escrocs se font passer pour des avocats et proposent une indemnisation aux victimes d\'arnaques en ligne. Ils réclament en réalité vos données personnelles (carte d\'identité, adresse, infos bancaires).',
+        fullDesc: 'Un nouveau type d\'arnaque cible les personnes déjà victimes d\'escroqueries en ligne.\n\nComment ça fonctionne :\n• Vous recevez un message d\'un « avocat » qui prétend que vous avez droit à une indemnisation\n• Il vous demande une copie de votre carte d\'identité, votre adresse et des détails sur le préjudice subi\n• Ces données sont utilisées pour d\'autres arnaques ou revendues\n\n🛡️ Comment vous protéger :\n• Aucun avocat légitime ne vous contacte spontanément par SMS ou e-mail\n• Ne transmettez jamais de copie de pièce d\'identité sans vérification approfondie\n• Signalez sur suspect@safeonweb.be',
         source: '🇧🇪 Safeonweb.be', color: '#000099', bg: '#dde6ff', id: 'safeonweb', country: 'be',
-        link: 'https://safeonweb.be', rawDate: new Date().toISOString(), isFallback: true, tags: ['arnaques','sms']
+        link: 'https://safeonweb.be/fr/actualite/attention-aux-faux-dossiers-de-demande-dindemnisation-suite-une-fraude',
+        rawDate: new Date('2026-03-30').toISOString(), isFallback: true, tags: ['arnaques','phishing']
+      },
+      {
+        title: '⚠️ SMS arnaque péage autoroute — frais impayés urgents',
+        desc: 'Des SMS prétendent que vous avez des frais de péage impayés et vous invitent à payer via un lien. Les vraies sociétés d\'autoroute n\'envoient pas de SMS avec lien de paiement.',
+        fullDesc: 'Avec la généralisation des péages en flux libre, les escrocs envoient des SMS imitant les opérateurs autoroutiers.\n\nComment reconnaître l\'arnaque :\n• SMS non sollicité avec un sentiment d\'urgence\n• Lien de paiement dans le SMS\n• Montant faible (2-5€) pour vous faire agir vite\n\n🛡️ Comment vous protéger :\n• Ne cliquez jamais sur un lien reçu par SMS\n• Vérifiez vos péages directement sur le site officiel de l\'opérateur\n• France : signalez au 33700 | Belgique : signalez au 8888',
+        source: '🇫🇷 Cybermalveillance', color: '#002395', bg: '#e8ecff', id: 'cybermaly', country: 'fr',
+        link: 'https://www.cybermalveillance.gouv.fr',
+        rawDate: new Date('2026-03-15').toISOString(), isFallback: true, tags: ['arnaques','sms']
       }
     ];
 
     const PROXY = 'https://api.codetabs.com/v1/proxy/?quest=';
+    // Sources grand public uniquement — arnaques, phishing, alertes citoyennes
     const FEEDS = [
-      { url: 'https://www.zataz.com/feed/',                                           source: '🇫🇷 ZATAZ',             color: '#002395', bg: '#e8ecff', id: 'zataz',       country: 'fr' },
-      { url: 'https://www.undernews.fr/feed',                                         source: '🇫🇷 Undernews',         color: '#6b21a8', bg: '#f3e8ff', id: 'undernews',   country: 'fr' },
+      { url: 'https://www.safeonweb.be/fr/rss',                                       source: '🇧🇪 Safeonweb.be',      color: '#000099', bg: '#dde6ff', id: 'safeonweb',   country: 'be' },
       { url: 'https://www.cybermalveillance.gouv.fr/feed/atom-flux-actualites',       source: '🇫🇷 Cybermalveillance', color: '#002395', bg: '#e8ecff', id: 'cybermaly',   country: 'fr' },
-      { url: 'https://www.cert.ssi.gouv.fr/feed/',                                   source: '🇫🇷 ANSSI/CERT-FR',    color: '#005c99', bg: '#ddf0ff', id: 'certfr',      country: 'fr' }
+      { url: 'https://www.zataz.com/category/arnaque/feed/',                          source: '🇫🇷 ZATAZ Arnaques',   color: '#d62828', bg: '#ffeaea', id: 'zataz',       country: 'fr' },
+      { url: 'https://www.undernews.fr/feed',                                         source: '🇫🇷 Undernews',         color: '#6b21a8', bg: '#f3e8ff', id: 'undernews',   country: 'fr' }
     ];
 
     let items = [];
@@ -3395,8 +3418,15 @@ const NewsScreen = {
 
     items.sort((a, b) => new Date(b.rawDate) - new Date(a.rawDate));
 
-    // Si aucun flux RSS n'a répondu → injecter les 6 alertes de secours
-    if (!items.length) items = FALLBACK_ALERTS;
+    // Si aucun flux RSS n'a répondu ou trop peu d'articles → injecter les alertes de secours
+    // On injecte toujours les fallback en complément si < 5 articles RSS
+    if (items.length < 5) {
+      // Fusionner fallback avec items RSS, sans doublons de titre
+      const existingTitles = new Set(items.map(i => i.title.toLowerCase()));
+      const toAdd = FALLBACK_ALERTS.filter(f => !existingTitles.has(f.title.toLowerCase()));
+      items = [...items, ...toAdd];
+      items.sort((a, b) => new Date(b.rawDate) - new Date(a.rawDate));
+    }
 
     this._cache     = items;
     this._cacheTime = Date.now();
@@ -3450,13 +3480,24 @@ const NewsScreen = {
       // Tags automatiques selon mots-clés
       const txt = (title + ' ' + rawDesc).toLowerCase();
       const tags = [];
-      if (/arnaque|fraude|escroquer|tromperie|vol/.test(txt)) tags.push('arnaques');
-      if (/phishing|hameçon|faux.*mail|faux.*lien|faux.*site/.test(txt)) tags.push('phishing');
-      if (/sms|appel|téléphone|phone|vocal|message.*suspect/.test(txt)) tags.push('sms');
+      if (/arnaque|fraude|escroquer|tromperie|vol|fuite.*données|usurpation/.test(txt)) tags.push('arnaques');
+      if (/phishing|hameçon|faux.*mail|faux.*lien|faux.*site|phish/.test(txt)) tags.push('phishing');
+      if (/sms|appel|téléphone|phone|vocal|message.*suspect|smishing/.test(txt)) tags.push('sms');
+
+      // Filtre grand public : pour les feeds généralistes (undernews), ne garder que
+      // les articles qui parlent d'arnaques, phishing, fraude, fuite de données grand public
+      const GRANDPUBLIC_KEYWORDS = /arnaque|fraude|escroquer|phishing|hameçon|smishing|faux sms|faux mail|faux appel|faux conseiller|vol d'identité|usurpation|fuite.*donnée|donnée.*fuit|mot de passe|alerte.*sécurité|attention.*arnaque|attention.*fraude|piratage.*compte/i;
+      const TECH_ONLY_KEYWORDS = /vulnérabilité|cve-|patch|exploit|ransomware.*entreprise|apt |zero.?day|pentest|malware.*entreprise|cyberattaque.*entreprise/i;
+
+      // Sources grand public : toujours inclure
+      const isPublicSource = ['safeonweb', 'cybermaly'].includes(feed.id);
+      // Sources techniques : filtrer pour ne garder que les sujets grand public
+      if (!isPublicSource && !GRANDPUBLIC_KEYWORDS.test(txt)) continue;
+      if (!isPublicSource && TECH_ONLY_KEYWORDS.test(txt) && !GRANDPUBLIC_KEYWORDS.test(txt)) continue;
 
       items.push({ title, desc, fullDesc: rawDesc, link, rawDate, source: feed.source, color: feed.color, bg: feed.bg, sourceId: feed.id, country: feed.country, tags });
     }
-    return items.slice(0, 15);
+    return items.slice(0, 20);
   },
 
   openArticle(sid) {
