@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no"/>
 <meta name="theme-color" content="#1a3a5c"/>
 <meta name="apple-mobile-web-app-capable" content="yes"/>
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data: blob: https:; connect-src 'self' https://*.supabase.co https://www.virustotal.com https://api.codetabs.com https://www.safeonweb.be https://economie.fgov.be https://www.cybermalveillance.gouv.fr https://www.signal-arnaques.com https://www.zataz.com https://www.undernews.fr https://www.it-connect.fr https://krebsonsecurity.com https://fonts.googleapis.com https://cert.be; worker-src 'self'; frame-src 'none'; object-src 'none';">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data: blob: https:; connect-src 'self' https://*.supabase.co https://www.virustotal.com https://api.codetabs.com https://www.zataz.com https://www.undernews.fr https://www.cybermalveillance.gouv.fr https://www.cert.ssi.gouv.fr https://fonts.googleapis.com; worker-src 'self'; frame-src 'none'; object-src 'none';">
 <title>QR CERTIFY</title>
 <link rel="manifest" href="manifest.json"/>
 <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@500;700;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet"/>
@@ -2120,6 +2120,9 @@ const Nav = {
       case 'news':
         NewsScreen.render();
         break;
+      case 'settings':
+        CertifiedLinks._updateSettingsAuthRow();
+        break;
       case 'certified':
         CertifiedLinks.render();
         break;
@@ -2187,20 +2190,16 @@ const Verifier = {
     DB.addScan(result);
 
     // Notifications natives selon statut du scan et préférences utilisateur
-    if (Notification.permission === 'granted') {
-      const domain = result.domain || result.url;
-      if ((result.status === 'blocked' || result.status === 'warning') && DB.getSetting('notif-threat', true)) {
-        const icon = result.status === 'blocked' ? '🚫' : '⚠️';
-        new Notification(`${icon} QR CERTIFY — ${result.status === 'blocked' ? 'Menace détectée' : 'Lien suspect'}`, {
-          body: `${domain} — Score ${result.score}/100`,
-          icon: '/icon-192.png', tag: 'qrc-threat'
-        });
-      } else if (result.status === 'certified' && DB.getSetting('notif-scan', true)) {
-        new Notification('✓ QR CERTIFY — Lien certifié', {
-          body: domain,
-          icon: '/icon-192.png', tag: 'qrc-scan'
-        });
-      }
+    const domain = result.domain || result.url;
+    if ((result.status === 'blocked' || result.status === 'warning') && DB.getSetting('notif-threat', true)) {
+      const icon = result.status === 'blocked' ? '🚫' : '⚠️';
+      sendNotif(
+        `${icon} QR CERTIFY — ${result.status === 'blocked' ? 'Menace détectée' : 'Lien suspect'}`,
+        `${domain} — Score ${result.score}/100`,
+        'qrc-threat'
+      );
+    } else if (result.status === 'certified' && DB.getSetting('notif-scan', true)) {
+      sendNotif('✓ QR CERTIFY — Lien certifié', domain, 'qrc-scan');
     }
 
     Nav.go('result', result);
@@ -2753,17 +2752,70 @@ const HistoryScreen = {
 };
 
 /* ══════════════════════════════════════════
-   BIOMÉTRIE — WebAuthn (empreinte / Face ID)
+   BIOMÉTRIE — Capacitor natif (APK) + WebAuthn fallback (navigateur)
 ══════════════════════════════════════════ */
 const Biometric = {
   CRED_KEY: 'qrc_bio_cred',
 
-  isSupported() {
+  // Plugin natif Capacitor (Android/iOS uniquement)
+  _nativePlugin() {
+    return window.Capacitor?.isNativePlatform()
+      ? window.Capacitor.Plugins?.BiometricAuthNative
+      : null;
+  },
+
+  async isSupported() {
+    const p = this._nativePlugin();
+    if (p) {
+      try { const r = await p.checkBiometry(); return r.isAvailable === true; }
+      catch { return false; }
+    }
     return !!(window.PublicKeyCredential && navigator.credentials?.create);
   },
 
-  async register() {
-    if (!this.isSupported()) throw new Error('WebAuthn non disponible sur cet appareil');
+  _isCancel(e) {
+    return e?.code === 'userCancel' || e?.name === 'NotAllowedError' ||
+           (e?.message || '').toLowerCase().includes('cancel');
+  },
+
+  // Authentifie via plugin natif ou WebAuthn
+  async _authenticate(reason) {
+    const p = this._nativePlugin();
+    if (p) {
+      await p.internalAuthenticate({
+        title: 'QR CERTIFY',
+        reason: reason || 'Confirmez votre identité',
+        allowDeviceCredential: true,
+        cancelTitle: 'Annuler'
+      });
+      return true;
+    }
+    // WebAuthn fallback (navigateur)
+    if (!window.PublicKeyCredential) throw new Error('Biométrie non disponible');
+    const stored = localStorage.getItem(this.CRED_KEY);
+    if (!stored) throw new Error('Aucun identifiant enregistré');
+    const rawId = Uint8Array.from(atob(stored), c => c.charCodeAt(0));
+    await navigator.credentials.get({
+      publicKey: {
+        challenge: crypto.getRandomValues(new Uint8Array(32)),
+        allowCredentials: [{ id: rawId, type: 'public-key' }],
+        userVerification: 'required', timeout: 60000
+      }
+    });
+    return true;
+  },
+
+  // Enregistre la biométrie
+  async _register() {
+    const p = this._nativePlugin();
+    if (p) {
+      // En natif : une authentification suffit pour "enregistrer"
+      await this._authenticate('Activez la biométrie pour QR CERTIFY');
+      localStorage.setItem(this.CRED_KEY, '1');
+      return true;
+    }
+    // WebAuthn fallback
+    if (!window.PublicKeyCredential) throw new Error('Biométrie non disponible sur cet appareil');
     const userId   = Auth.user?.id || ('qrc-' + Date.now());
     const userName = Auth.user?.email || 'utilisateur@qrcertify';
     const rpId     = window.location.hostname || 'localhost';
@@ -2773,11 +2825,10 @@ const Biometric = {
         rp: { name: 'QR CERTIFY', id: rpId },
         user: {
           id: new TextEncoder().encode(userId),
-          name: userName,
-          displayName: userName
+          name: userName, displayName: userName
         },
         pubKeyCredParams: [
-          { type: 'public-key', alg: -7  },
+          { type: 'public-key', alg: -7 },
           { type: 'public-key', alg: -257 }
         ],
         authenticatorSelection: {
@@ -2785,28 +2836,11 @@ const Biometric = {
           requireResidentKey: false,
           userVerification: 'required'
         },
-        timeout: 60000,
-        attestation: 'none'
+        timeout: 60000, attestation: 'none'
       }
     });
     const credId = btoa(String.fromCharCode(...new Uint8Array(cred.rawId)));
     localStorage.setItem(this.CRED_KEY, credId);
-    return true;
-  },
-
-  async verify() {
-    if (!this.isSupported()) throw new Error('WebAuthn non disponible');
-    const stored = localStorage.getItem(this.CRED_KEY);
-    if (!stored) throw new Error('Aucun identifiant enregistré');
-    const rawId = Uint8Array.from(atob(stored), c => c.charCodeAt(0));
-    await navigator.credentials.get({
-      publicKey: {
-        challenge: crypto.getRandomValues(new Uint8Array(32)),
-        allowCredentials: [{ id: rawId, type: 'public-key' }],
-        userVerification: 'required',
-        timeout: 60000
-      }
-    });
     return true;
   },
 
@@ -2815,12 +2849,13 @@ const Biometric = {
   async toggle() {
     const el  = document.getElementById('tog-biometric');
     const sta = document.getElementById('bio-status');
-    if (!this.isSupported()) { showToast('Biométrie non disponible sur cet appareil'); return; }
     const isOn = el?.classList.contains('on');
     if (!isOn) {
       try {
+        const supported = await this.isSupported();
+        if (!supported) { showToast('Biométrie non disponible sur cet appareil'); return; }
         showToast('Placez votre doigt sur le capteur…');
-        await this.register();
+        await this._register();
         el?.classList.add('on');
         DB.setSetting('biometric', true);
         if (sta) sta.textContent = '✓ Empreinte enregistrée — paramètres protégés';
@@ -2828,7 +2863,7 @@ const Biometric = {
       } catch(e) {
         el?.classList.remove('on');
         DB.setSetting('biometric', false);
-        showToast(e.name === 'NotAllowedError' ? 'Biométrie annulée' : 'Erreur : ' + (e.message || 'biométrie indisponible'));
+        showToast(this._isCancel(e) ? 'Biométrie annulée' : 'Erreur : ' + (e.message || 'biométrie indisponible'));
       }
     } else {
       this.clear();
@@ -2843,13 +2878,50 @@ const Biometric = {
   async guardSettings() {
     if (!DB.getSetting('biometric', false)) return true;
     if (!localStorage.getItem(this.CRED_KEY)) return true;
-    try { await this.verify(); return true; }
+    try { await this._authenticate('Accès aux paramètres QR CERTIFY'); return true; }
     catch(e) {
-      showToast(e.name === 'NotAllowedError' ? 'Biométrie annulée' : 'Accès refusé');
+      showToast(this._isCancel(e) ? 'Biométrie annulée' : 'Accès refusé');
       return false;
     }
   }
 };
+
+/* ══════════════════════════════════════════
+   NOTIFICATIONS — helpers natif/web
+══════════════════════════════════════════ */
+async function requestNotifPermission() {
+  if (window.Capacitor?.isNativePlatform()) {
+    const LN = window.Capacitor.Plugins?.LocalNotifications;
+    if (!LN) return false;
+    try { const { display } = await LN.requestPermissions(); return display === 'granted'; }
+    catch { return false; }
+  }
+  if (!('Notification' in window)) return false;
+  if (Notification.permission === 'granted') return true;
+  const p = await Notification.requestPermission();
+  return p === 'granted';
+}
+
+async function sendNotif(title, body, tagOrId) {
+  if (window.Capacitor?.isNativePlatform()) {
+    const LN = window.Capacitor.Plugins?.LocalNotifications;
+    if (!LN) return;
+    try {
+      await LN.schedule({
+        notifications: [{
+          id: Date.now() & 0x7fffffff,
+          title, body,
+          schedule: { at: new Date(Date.now() + 300) },
+          smallIcon: 'ic_launcher'
+        }]
+      });
+    } catch(e) { console.warn('[Notif]', e.message); }
+    return;
+  }
+  if ('Notification' in window && Notification.permission === 'granted') {
+    new Notification(title, { body, icon: '/icon-192.png', tag: tagOrId });
+  }
+}
 
 /* ══════════════════════════════════════════
    PARAMÈTRES — toggles
@@ -2863,29 +2935,22 @@ function toggleSetting(key) {
   DB.setSetting(key, newVal);
 
   if (key === 'notif-scan' || key === 'notif-threat') {
-    if (newVal && 'Notification' in window && Notification.permission === 'default') {
-      Notification.requestPermission().then(p => {
+    if (newVal) {
+      requestNotifPermission().then(granted => {
         const banner = document.getElementById('notif-permission-banner');
-        if (p !== 'granted') {
+        if (!granted) {
           el.classList.remove('on'); DB.setSetting(key, false);
           if (banner) banner.style.display = 'flex';
-          showToast('Autorisez les notifications dans les paramètres Android');
+          showToast('Notifications bloquées — autorisez dans les paramètres Android');
         } else {
           if (banner) banner.style.display = 'none';
-          showToast('Notifications activées');
-          new Notification('✅ QR CERTIFY — Notifications actives', {
-            body: 'Vous recevrez des alertes après chaque scan suspect.',
-            icon: '/icon-192.png', tag: 'qrc-test'
-          });
+          showToast('Notifications activées ✅');
+          sendNotif('✅ QR CERTIFY — Notifications actives',
+            'Vous recevrez des alertes après chaque scan suspect.', 'qrc-test');
         }
       });
-    } else if (newVal && Notification.permission === 'denied') {
-      el.classList.remove('on'); DB.setSetting(key, false);
-      const banner = document.getElementById('notif-permission-banner');
-      if (banner) banner.style.display = 'flex';
-      showToast('Notifications bloquées — autorisez dans les paramètres Android');
     } else {
-      showToast(newVal ? 'Notifications activées' : 'Notifications désactivées');
+      showToast('Notifications désactivées');
     }
     return;
   }
@@ -2907,10 +2972,16 @@ function loadSettingsState() {
   if (sta && DB.getSetting('biometric', false) && localStorage.getItem(Biometric.CRED_KEY)) {
     sta.textContent = '✓ Empreinte enregistrée — paramètres protégés';
   }
-  if ('Notification' in window && Notification.permission === 'denied') {
+  // Vérifier si les notifications sont bloquées (natif ou web)
+  const checkBanner = async () => {
     const b = document.getElementById('notif-permission-banner');
-    if (b) b.style.display = 'flex';
-  }
+    if (!b) return;
+    const granted = await requestNotifPermission().catch(() => false);
+    // Ne montrer la bannière que si le toggle est activé ET permissions refusées
+    const notifEnabled = DB.getSetting('notif-scan', true) || DB.getSetting('notif-threat', true);
+    b.style.display = (notifEnabled && !granted) ? 'flex' : 'none';
+  };
+  checkBanner();
 }
 
 function exportLogs() {
@@ -3302,15 +3373,15 @@ const NewsScreen = {
       }
     ];
 
-    const PROXY = 'https://api.codetabs.com/v1/proxy?quest=';
+    const PROXY = 'https://api.codetabs.com/v1/proxy/?quest=';
     const FEEDS = [
-      { url: 'https://www.safeonweb.be/fr/rss.xml',                    source: '🇧🇪 Safeonweb.be',    color: '#000099', bg: '#dde6ff', id: 'safeonweb',      country: 'be' },
-      { url: 'https://economie.fgov.be/fr/rss.xml',                    source: '🇧🇪 SPF Économie',    color: '#006400', bg: '#d4f4e2', id: 'spf',            country: 'be' },
-      { url: 'https://www.cybermalveillance.gouv.fr/feed/',             source: '🇫🇷 Cybermalveillance', color: '#002395', bg: '#e8ecff', id: 'cybermaly',   country: 'fr' },
-      { url: 'https://www.signal-arnaques.com/scam/list.rss',           source: '🇫🇷 Signal-Arnaques', color: '#c0392b', bg: '#ffdad6', id: 'signalarnaques', country: 'fr' }
+      { url: 'https://www.zataz.com/feed/',                                           source: '🇫🇷 ZATAZ',             color: '#002395', bg: '#e8ecff', id: 'zataz',       country: 'fr' },
+      { url: 'https://www.undernews.fr/feed',                                         source: '🇫🇷 Undernews',         color: '#6b21a8', bg: '#f3e8ff', id: 'undernews',   country: 'fr' },
+      { url: 'https://www.cybermalveillance.gouv.fr/feed/atom-flux-actualites',       source: '🇫🇷 Cybermalveillance', color: '#002395', bg: '#e8ecff', id: 'cybermaly',   country: 'fr' },
+      { url: 'https://www.cert.ssi.gouv.fr/feed/',                                   source: '🇫🇷 ANSSI/CERT-FR',    color: '#005c99', bg: '#ddf0ff', id: 'certfr',      country: 'fr' }
     ];
 
-    const items = [];
+    let items = [];
     await Promise.allSettled(FEEDS.map(async feed => {
       try {
         const res = await Promise.race([
@@ -3335,28 +3406,55 @@ const NewsScreen = {
 
   _parseRSS(xml, feed) {
     const items = [];
-    const regex = /<item>([\s\S]*?)<\/item>/g;
+
+    // Helper : extrait la valeur d'un tag (CDATA ou texte brut)
+    const getTag = (block, tag) => {
+      const r = block.match(new RegExp(
+        `<${tag}[^>]*><!\\[CDATA\\[([\\s\\S]*?)\\]\\]><\\/${tag}>|<${tag}[^>]*>([\\s\\S]*?)<\\/${tag}>`, 'i'
+      ));
+      return r ? (r[1] || r[2] || '').trim() : '';
+    };
+    // Helper : extrait attribut href d'un tag self-closing (ex: <link href="..."/>)
+    const getHref = (block, tag) => {
+      const r = block.match(new RegExp(`<${tag}[^>]*\\bhref=["']([^"']+)["']`, 'i'));
+      return r ? r[1].trim() : '';
+    };
+
+    // Détecte le format : RSS (<item>) ou Atom (<entry>)
+    const isAtom = /<entry[\s>]/.test(xml);
+    const regex  = isAtom
+      ? /<entry[\s>]([\s\S]*?)<\/entry>/g
+      : /<item>([\s\S]*?)<\/item>/g;
+
     let m;
     while ((m = regex.exec(xml)) !== null) {
-      const get = tag => {
-        const r = m[1].match(new RegExp(
-          `<${tag}[^>]*><!\\[CDATA\\[([\\s\\S]*?)\\]\\]><\\/${tag}>|<${tag}[^>]*>([\\s\\S]*?)<\\/${tag}>`, 'i'
-        ));
-        return r ? (r[1] || r[2] || '').trim() : '';
-      };
-      const title = get('title');
+      const block = m[1] || m[0];
+
+      let title, rawDate, rawDesc, link;
+
+      if (isAtom) {
+        title   = getTag(block, 'title');
+        rawDate = getTag(block, 'updated') || getTag(block, 'published');
+        rawDesc = (getTag(block, 'summary') || getTag(block, 'content')).replace(/<[^>]+>/g, '').replace(/&[^;]+;/gi, '').trim();
+        link    = getHref(block, 'link') || getTag(block, 'link');
+      } else {
+        title   = getTag(block, 'title');
+        rawDate = getTag(block, 'pubDate');
+        rawDesc = getTag(block, 'description').replace(/<[^>]+>/g, '').replace(/&[^;]+;/gi, '').trim();
+        link    = getTag(block, 'link');
+      }
+
       if (!title) continue;
-      const rawDate = get('pubDate');
-      const rawDesc = get('description').replace(/<[^>]+>/g, '').replace(/&[^;]+;/gi,'').trim();
-      const desc    = rawDesc.slice(0, 180); // aperçu court pour la liste
-      // sourceId = pour le filtre, pas d'id unique → Store utilisera Date.now()
-      // Tags automatiques selon mots-clés du titre/description
+      const desc = rawDesc.slice(0, 180);
+
+      // Tags automatiques selon mots-clés
       const txt = (title + ' ' + rawDesc).toLowerCase();
       const tags = [];
       if (/arnaque|fraude|escroquer|tromperie|vol/.test(txt)) tags.push('arnaques');
       if (/phishing|hameçon|faux.*mail|faux.*lien|faux.*site/.test(txt)) tags.push('phishing');
       if (/sms|appel|téléphone|phone|vocal|message.*suspect/.test(txt)) tags.push('sms');
-      items.push({ title, desc, fullDesc: rawDesc, link: get('link'), rawDate, source: feed.source, color: feed.color, bg: feed.bg, sourceId: feed.id, country: feed.country, tags });
+
+      items.push({ title, desc, fullDesc: rawDesc, link, rawDate, source: feed.source, color: feed.color, bg: feed.bg, sourceId: feed.id, country: feed.country, tags });
     }
     return items.slice(0, 15);
   },
@@ -3386,7 +3484,7 @@ const NewsScreen = {
     Nav.go('article');
 
     // Fetch le contenu de l'article via le proxy CORS
-    const PROXY = 'https://api.codetabs.com/v1/proxy?quest=';
+    const PROXY = 'https://api.codetabs.com/v1/proxy/?quest=';
     Promise.race([
       fetch(PROXY + encodeURIComponent(item.link)),
       new Promise((_, r) => setTimeout(() => r(new Error('timeout')), 10000))
