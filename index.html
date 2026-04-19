@@ -3395,32 +3395,58 @@ const NewsScreen = {
       }
     ];
 
-    const PROXY = 'https://api.codetabs.com/v1/proxy/?quest=';
-    // Sources grand public uniquement — arnaques, phishing, alertes citoyennes
-    // Note : Safeonweb.be est bloqué par les proxies CORS publics → géré via FALLBACK_ALERTS
+    // Proxy public (fallback) — bloque safeonweb.be et cert.ssi.gouv.fr
+    const PUBLIC_PROXY = 'https://api.codetabs.com/v1/proxy/?quest=';
+    // Proxy perso sur NAS Synology — débloquetoutes les sources gouvernementales
+    // Démarrer avec : node rss-proxy.js (inclus dans ce repo)
+    // Adapter l'IP/port de ton NAS ci-dessous :
+    const LOCAL_PROXY  = 'http://192.168.1.100:3033/?url=';
+
+    // Détection automatique du proxy local (silencieuse, 2s timeout)
+    let proxyBase = PUBLIC_PROXY;
+    try {
+      const health = await Promise.race([
+        fetch(LOCAL_PROXY.replace('/?url=', '/health')),
+        new Promise((_, r) => setTimeout(() => r(new Error('timeout')), 2000))
+      ]);
+      if (health.ok) proxyBase = LOCAL_PROXY;
+    } catch {}
+
+    const usingLocalProxy = proxyBase === LOCAL_PROXY;
+    console.log(usingLocalProxy ? '✅ Proxy local actif' : '⚠️ Proxy public (safeonweb/CERT-FR indisponibles)');
+
+    // Sources grand public — arnaques, phishing, alertes citoyennes
+    // Feeds marqués localOnly=true ne sont chargés que si le proxy local répond
     const FEEDS = [
-      { url: 'https://www.cybermalveillance.gouv.fr/feed/atom-flux-actualites',       source: '🇫🇷 Cybermalveillance', color: '#002395', bg: '#e8ecff', id: 'cybermaly',   country: 'fr' },
-      { url: 'https://www.zataz.com/category/arnaque/feed/',                          source: '🇫🇷 ZATAZ Arnaques',   color: '#d62828', bg: '#ffeaea', id: 'zataz',       country: 'fr' },
-      { url: 'https://www.undernews.fr/feed',                                         source: '🇫🇷 Undernews',         color: '#6b21a8', bg: '#f3e8ff', id: 'undernews',   country: 'fr' }
+      { url: 'https://www.safeonweb.be/fr/rss',                                       source: '🇧🇪 Safeonweb.be',      color: '#000099', bg: '#dde6ff', id: 'safeonweb',  country: 'be', localOnly: true  },
+      { url: 'https://www.cert.ssi.gouv.fr/feed/',                                    source: '🇫🇷 CERT-FR',            color: '#003189', bg: '#e0e8ff', id: 'certfr',    country: 'fr', localOnly: true  },
+      { url: 'https://www.cybermalveillance.gouv.fr/feed/atom-flux-actualites',        source: '🇫🇷 Cybermalveillance', color: '#002395', bg: '#e8ecff', id: 'cybermaly', country: 'fr', localOnly: false },
+      { url: 'https://www.zataz.com/category/arnaque/feed/',                           source: '🇫🇷 ZATAZ Arnaques',   color: '#d62828', bg: '#ffeaea', id: 'zataz',    country: 'fr', localOnly: false },
+      { url: 'https://www.undernews.fr/feed',                                          source: '🇫🇷 Undernews',         color: '#6b21a8', bg: '#f3e8ff', id: 'undernews',country: 'fr', localOnly: false },
     ];
 
     let items = [];
-    await Promise.allSettled(FEEDS.map(async feed => {
-      try {
-        const res = await Promise.race([
-          fetch(PROXY + encodeURIComponent(feed.url)),
-          new Promise((_, r) => setTimeout(() => r(new Error('timeout')), 8000))
-        ]);
-        const xml = await res.text();
-        items.push(...this._parseRSS(xml, feed));
-      } catch {}
-    }));
+    await Promise.allSettled(
+      FEEDS
+        .filter(feed => !feed.localOnly || usingLocalProxy)
+        .map(async feed => {
+          const proxy = (feed.localOnly && usingLocalProxy) ? LOCAL_PROXY : PUBLIC_PROXY;
+          try {
+            const res = await Promise.race([
+              fetch(proxy + encodeURIComponent(feed.url)),
+              new Promise((_, r) => setTimeout(() => r(new Error('timeout')), 8000))
+            ]);
+            const xml = await res.text();
+            items.push(...this._parseRSS(xml, feed));
+          } catch {}
+        })
+    );
 
     items.sort((a, b) => new Date(b.rawDate) - new Date(a.rawDate));
 
     // Toujours injecter les FALLBACK_ALERTS en complément (sans doublons)
-    // Les alertes belges (Safeonweb) ne peuvent pas être chargées via proxy CORS
-    // → elles sont toujours présentes ici pour garantir le contenu du filtre 🇧🇪
+    // Sans proxy local : les alertes belges statiques garantissent le contenu du filtre 🇧🇪
+    // Avec proxy local : les vraies alertes Safeonweb priment via déduplication par titre
     {
       const existingTitles = new Set(items.map(i => i.title.toLowerCase()));
       const toAdd = FALLBACK_ALERTS.filter(f => !existingTitles.has(f.title.toLowerCase()));
