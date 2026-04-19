@@ -5,7 +5,7 @@
 <meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1,user-scalable=no"/>
 <meta name="theme-color" content="#1a3a5c"/>
 <meta name="apple-mobile-web-app-capable" content="yes"/>
-<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data: blob: https:; connect-src 'self' https://*.supabase.co https://www.virustotal.com https://api.codetabs.com https://www.safeonweb.be https://safeonweb.be https://www.zataz.com https://www.undernews.fr https://www.cybermalveillance.gouv.fr https://www.cert.ssi.gouv.fr https://fonts.googleapis.com; worker-src 'self'; frame-src 'none'; object-src 'none';">
+<meta http-equiv="Content-Security-Policy" content="default-src 'self'; script-src 'self' 'unsafe-inline' https://cdn.jsdelivr.net; style-src 'self' 'unsafe-inline' https://fonts.googleapis.com; font-src https://fonts.gstatic.com; img-src 'self' data: blob: https:; connect-src 'self' https://*.supabase.co https://www.virustotal.com https://api.codetabs.com https://www.zataz.com https://www.undernews.fr https://www.cybermalveillance.gouv.fr https://www.cert.ssi.gouv.fr https://fonts.googleapis.com; worker-src 'self'; frame-src 'none'; object-src 'none';">
 <title>QR CERTIFY</title>
 <link rel="manifest" href="manifest.json"/>
 <link href="https://fonts.googleapis.com/css2?family=Manrope:wght@500;700;800&family=Inter:wght@400;500;600&display=swap" rel="stylesheet"/>
@@ -359,7 +359,7 @@ html,body{height:100%;overflow:hidden;font-family:'Inter',sans-serif;background:
       <span class="material-symbols-outlined" style="color:#c084fc;font-size:26px;font-variation-settings:'FILL' 1;flex-shrink:0">newspaper</span>
       <div style="flex:1">
         <div style="color:#fff;font-size:13px;font-weight:600">Actualités Arnaques</div>
-        <div style="color:#c084fc;font-size:11px;margin-top:2px">🇧🇪 Safeonweb · 🇫🇷 Cybermalveillance · Signal-Arnaques</div>
+        <div style="color:#c084fc;font-size:11px;margin-top:2px">🇧🇪 Alertes Belgique · 🇫🇷 Cybermalveillance · Arnaques</div>
       </div>
       <span class="material-symbols-outlined" style="color:#c084fc;font-size:20px">chevron_right</span>
     </div>
@@ -3397,8 +3397,8 @@ const NewsScreen = {
 
     const PROXY = 'https://api.codetabs.com/v1/proxy/?quest=';
     // Sources grand public uniquement — arnaques, phishing, alertes citoyennes
+    // Note : Safeonweb.be est bloqué par les proxies CORS publics → géré via FALLBACK_ALERTS
     const FEEDS = [
-      { url: 'https://www.safeonweb.be/fr/rss',                                       source: '🇧🇪 Safeonweb.be',      color: '#000099', bg: '#dde6ff', id: 'safeonweb',   country: 'be' },
       { url: 'https://www.cybermalveillance.gouv.fr/feed/atom-flux-actualites',       source: '🇫🇷 Cybermalveillance', color: '#002395', bg: '#e8ecff', id: 'cybermaly',   country: 'fr' },
       { url: 'https://www.zataz.com/category/arnaque/feed/',                          source: '🇫🇷 ZATAZ Arnaques',   color: '#d62828', bg: '#ffeaea', id: 'zataz',       country: 'fr' },
       { url: 'https://www.undernews.fr/feed',                                         source: '🇫🇷 Undernews',         color: '#6b21a8', bg: '#f3e8ff', id: 'undernews',   country: 'fr' }
@@ -3418,10 +3418,10 @@ const NewsScreen = {
 
     items.sort((a, b) => new Date(b.rawDate) - new Date(a.rawDate));
 
-    // Si aucun flux RSS n'a répondu ou trop peu d'articles → injecter les alertes de secours
-    // On injecte toujours les fallback en complément si < 5 articles RSS
-    if (items.length < 5) {
-      // Fusionner fallback avec items RSS, sans doublons de titre
+    // Toujours injecter les FALLBACK_ALERTS en complément (sans doublons)
+    // Les alertes belges (Safeonweb) ne peuvent pas être chargées via proxy CORS
+    // → elles sont toujours présentes ici pour garantir le contenu du filtre 🇧🇪
+    {
       const existingTitles = new Set(items.map(i => i.title.toLowerCase()));
       const toAdd = FALLBACK_ALERTS.filter(f => !existingTitles.has(f.title.toLowerCase()));
       items = [...items, ...toAdd];
@@ -3490,7 +3490,7 @@ const NewsScreen = {
       const TECH_ONLY_KEYWORDS = /vulnérabilité|cve-|patch|exploit|ransomware.*entreprise|apt |zero.?day|pentest|malware.*entreprise|cyberattaque.*entreprise/i;
 
       // Sources grand public : toujours inclure
-      const isPublicSource = ['safeonweb', 'cybermaly'].includes(feed.id);
+      const isPublicSource = ['cybermaly'].includes(feed.id);
       // Sources techniques : filtrer pour ne garder que les sujets grand public
       if (!isPublicSource && !GRANDPUBLIC_KEYWORDS.test(txt)) continue;
       if (!isPublicSource && TECH_ONLY_KEYWORDS.test(txt) && !GRANDPUBLIC_KEYWORDS.test(txt)) continue;
