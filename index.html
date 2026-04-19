@@ -3486,7 +3486,7 @@ const NewsScreen = {
 
       // Filtre grand public : pour les feeds généralistes (undernews), ne garder que
       // les articles qui parlent d'arnaques, phishing, fraude, fuite de données grand public
-      const GRANDPUBLIC_KEYWORDS = /arnaque|fraude|escroquer|phishing|hameçon|smishing|faux sms|faux mail|faux appel|faux conseiller|vol d'identité|usurpation|fuite.*donnée|donnée.*fuit|mot de passe|alerte.*sécurité|attention.*arnaque|attention.*fraude|piratage.*compte/i;
+      const GRANDPUBLIC_KEYWORDS = /arnaque|fraude|frauduleux|escroquer|phishing|hame[\xE7c]on|smishing|faux sms|faux mail|faux appel|faux conseiller|vol d.identit[e\xE9]|usurpation|fuite.*donn[e\xE9]e|donn[e\xE9]e.*fuit|donn[e\xE9]e.*expos|donn[e\xE9]e.*client|incident.*s[e\xE9]curit[e\xE9]|mot de passe|alerte.*s[e\xE9]curit[e\xE9]|attention.*arnaque|attention.*fraude|piratage.*compte/i;
       const TECH_ONLY_KEYWORDS = /vulnérabilité|cve-|patch|exploit|ransomware.*entreprise|apt |zero.?day|pentest|malware.*entreprise|cyberattaque.*entreprise/i;
 
       // Sources grand public : toujours inclure
