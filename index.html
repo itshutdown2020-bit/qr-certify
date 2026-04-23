@@ -3388,10 +3388,87 @@ const NewsScreen = {
       {
         title: '⚠️ SMS arnaque péage autoroute — frais impayés urgents',
         desc: 'Des SMS prétendent que vous avez des frais de péage impayés et vous invitent à payer via un lien. Les vraies sociétés d\'autoroute n\'envoient pas de SMS avec lien de paiement.',
-        fullDesc: 'Avec la généralisation des péages en flux libre, les escrocs envoient des SMS imitant les opérateurs autoroutiers.\n\nComment reconnaître l\'arnaque :\n• SMS non sollicité avec un sentiment d\'urgence\n• Lien de paiement dans le SMS\n• Montant faible (2-5€) pour vous faire agir vite\n\n🛡️ Comment vous protéger :\n• Ne cliquez jamais sur un lien reçu par SMS\n• Vérifiez vos péages directement sur le site officiel de l\'opérateur\n• France : signalez au 33700 | Belgique : signalez au 8888',
+        fullDesc: 'Avec la généralisation des péages en flux libre, les escrocs envoient des SMS imitant les opérateurs autoroutiers.\n\n🛡️ Comment vous protéger :\n• Ne cliquez jamais sur un lien reçu par SMS\n• Vérifiez vos péages directement sur le site officiel de l\'opérateur\n• France : signalez au 33700 | Belgique : signalez au 8888',
         source: '🇫🇷 Cybermalveillance', color: '#002395', bg: '#e8ecff', id: 'cybermaly', country: 'fr',
         link: 'https://www.cybermalveillance.gouv.fr',
         rawDate: new Date('2026-03-15').toISOString(), isFallback: true, tags: ['arnaques','sms']
+      },
+      {
+        title: '⚠️ Phishing Amazon : faux e-mail "votre commande est suspendue"',
+        desc: 'Des e-mails imitant Amazon signalent une commande bloquée et demandent de ressaisir vos données de paiement sur une copie frauduleuse du site.',
+        fullDesc: 'Des e-mails imitant Amazon circulent massivement. Ils utilisent le logo officiel et affichent un faux numéro de commande pour paraître crédibles.\n\n🛡️ Comment vous protéger :\n• Connectez-vous directement sur amazon.fr, jamais via un lien reçu par e-mail\n• Vérifiez l\'adresse de l\'expéditeur (un vrai mail Amazon se termine par @amazon.fr)\n• Signalez le mail à stop-arnaque@amazon.fr',
+        source: '🇫🇷 Cybermalveillance', color: '#002395', bg: '#e8ecff', id: 'cybermaly', country: 'fr',
+        link: 'https://www.cybermalveillance.gouv.fr', rawDate: new Date('2026-03-12').toISOString(), isFallback: true, tags: ['arnaques','phishing']
+      },
+      {
+        title: '⚠️ Arnaque : faux pop-up Microsoft — "votre PC est infecté, appelez le 0800…"',
+        desc: 'Une page web bloque votre navigateur avec une fausse alerte Microsoft et un numéro surtaxé. N\'appelez pas. Fermez l\'onglet avec Ctrl+W ou redémarrez votre navigateur.',
+        fullDesc: 'Le "faux support technique" est l\'une des arnaques les plus répandues. Une page web bloque votre écran avec une alarme sonore et un numéro à appeler.\n\nSi vous appelez : le "technicien" vous demande de lui donner accès à votre PC via un logiciel (TeamViewer, AnyDesk) puis vole vos fichiers et informations bancaires.\n\n🛡️ Comment vous protéger :\n• Fermez l\'onglet avec Ctrl+W ou Alt+F4\n• Si la page ne se ferme pas, forcez la fermeture du navigateur\n• Ne rappellez jamais ce type de numéro\n• Signalez sur cybermalveillance.gouv.fr',
+        source: '🇫🇷 Cybermalveillance', color: '#002395', bg: '#e8ecff', id: 'cybermaly', country: 'fr',
+        link: 'https://www.cybermalveillance.gouv.fr', rawDate: new Date('2026-03-10').toISOString(), isFallback: true, tags: ['arnaques']
+      },
+      {
+        title: '⚠️ Phishing Netflix/Spotify : faux e-mail "paiement refusé"',
+        desc: 'Des e-mails imitant Netflix ou Spotify signalent un échec de paiement et redirigent vers une fausse page de mise à jour de carte bancaire.',
+        fullDesc: 'Ces e-mails de phishing ciblent les abonnés aux plateformes de streaming. Ils affichent le logo officiel et créent une fausse urgence ("votre compte sera suspendu dans 24h").\n\n🛡️ Comment vous protéger :\n• Connectez-vous directement sur netflix.com ou spotify.com, jamais via un lien d\'e-mail\n• Vérifiez vos paiements depuis les paramètres de votre compte\n• Un e-mail légitime ne vous demande jamais de ressaisir votre numéro de carte',
+        source: '🇧🇪 Safeonweb.be', color: '#000099', bg: '#dde6ff', id: 'safeonweb', country: 'be',
+        link: 'https://safeonweb.be', rawDate: new Date('2026-03-08').toISOString(), isFallback: true, tags: ['arnaques','phishing']
+      },
+      {
+        title: '⚠️ Romance scam : faux profil militaire ou médecin en mission à l\'étranger',
+        desc: 'Des escrocs créent de faux profils séduisants sur les réseaux sociaux et applications de rencontre. Après plusieurs semaines d\'échanges, ils demandent de l\'argent pour une "urgence".',
+        fullDesc: 'Le "romance scam" représente des millions d\'euros de pertes chaque année. Les escrocs opèrent depuis l\'étranger et construisent une relation de confiance sur plusieurs semaines.\n\nSignes d\'alerte :\n• Profil trop parfait, photos de modèle ou militaire\n• Jamais disponible pour un appel vidéo\n• Toujours une urgence financière : billet d\'avion, opération médicale, frais de douane\n\n🛡️ Règle absolue : ne transférez JAMAIS d\'argent à quelqu\'un que vous n\'avez jamais rencontré en personne.',
+        source: '🇧🇪 Safeonweb.be', color: '#000099', bg: '#dde6ff', id: 'safeonweb', country: 'be',
+        link: 'https://safeonweb.be', rawDate: new Date('2026-03-05').toISOString(), isFallback: true, tags: ['arnaques']
+      },
+      {
+        title: '⚠️ Arnaque emploi : fausse offre de "reshipping" ou télésecrétaire',
+        desc: 'Des offres proposent de recevoir des colis chez vous et de les réexpédier pour 300-500 €/mois. En réalité, vous devenez complice de recel de marchandises volées.',
+        fullDesc: 'Ces fausses offres d\'emploi ciblent les personnes en recherche d\'emploi. L\'arnaque consiste à utiliser votre adresse pour réceptionner et réexpédier des colis achetés avec des cartes bancaires volées.\n\nConséquences possibles :\n• Poursuites judiciaires pour recel\n• Votre adresse fichée par les services de police\n• Votre compte bancaire bloqué si vous recevez des paiements\n\n🛡️ Toute offre demandant de réceptionner des colis ou des virements est une arnaque.',
+        source: '🇫🇷 Cybermalveillance', color: '#002395', bg: '#e8ecff', id: 'cybermaly', country: 'fr',
+        link: 'https://www.cybermalveillance.gouv.fr', rawDate: new Date('2026-03-01').toISOString(), isFallback: true, tags: ['arnaques']
+      },
+      {
+        title: '⚠️ Phishing : faux e-mail "votre compte Apple/Google a été suspendu"',
+        desc: 'Des e-mails imitant Apple ou Google signalent une activité suspecte et demandent de re-vérifier votre identité. Le faux site vole votre mot de passe et vos données de paiement.',
+        fullDesc: 'Ces e-mails de phishing usurpent l\'identité d\'Apple (ID Apple) ou de Google (compte Google) et créent une fausse urgence.\n\n🛡️ Comment vous protéger :\n• Accédez à votre compte Apple sur appleid.apple.com ou votre compte Google sur myaccount.google.com\n• Activez la vérification en deux étapes sur tous vos comptes\n• Un e-mail Apple/Google ne contient jamais de lien demandant votre mot de passe',
+        source: '🇧🇪 Safeonweb.be', color: '#000099', bg: '#dde6ff', id: 'safeonweb', country: 'be',
+        link: 'https://safeonweb.be', rawDate: new Date('2026-02-25').toISOString(), isFallback: true, tags: ['arnaques','phishing']
+      },
+      {
+        title: '⚠️ Arnaque crypto : fausse plateforme d\'investissement "bitcoin garanti"',
+        desc: 'Des publicités sur les réseaux sociaux promettent des rendements de 10 %/semaine sur des plateformes crypto inconnues. L\'argent versé est définitivement perdu.',
+        fullDesc: 'Ces arnaques, appelées "pig butchering" (engraissement du cochon), fonctionnent en plusieurs étapes : gain initial pour instaurer la confiance, puis blocage du retrait et demande de frais supplémentaires.\n\nSignes d\'alerte :\n• Rendements impossibles (5-10 % par semaine)\n• Plateforme inconnue impossible à trouver sur Google\n• Pression pour investir plus\n• Impossible de retirer sans payer des "frais"\n\n🛡️ Ne confiez jamais d\'argent à une plateforme crypto que vous ne connaissez pas.',
+        source: '🇫🇷 Cybermalveillance', color: '#002395', bg: '#e8ecff', id: 'cybermaly', country: 'fr',
+        link: 'https://www.cybermalveillance.gouv.fr', rawDate: new Date('2026-02-20').toISOString(), isFallback: true, tags: ['arnaques']
+      },
+      {
+        title: '⚠️ Arnaque colis La Poste/bpost : SMS "1,99 € de frais de livraison"',
+        desc: 'Des SMS imitant La Poste ou bpost demandent 1,99 € pour libérer un colis. Derrière ce paiement se cache un abonnement frauduleux de 30-50 €/mois.',
+        fullDesc: 'Ces SMS de phishing circulent toute l\'année mais s\'intensifient avant Noël et les fêtes. Le paiement de 1,99 € cache un abonnement mensuel frauduleux.\n\n🛡️ Comment vous protéger :\n• Suivez vos colis uniquement sur laposte.fr ou bpost.be\n• La Poste et bpost ne demandent jamais de frais supplémentaires par SMS\n• Signalez le SMS au 33700 (France) ou au 8888 (Belgique)',
+        source: '🇧🇪 Safeonweb.be', color: '#000099', bg: '#dde6ff', id: 'safeonweb', country: 'be',
+        link: 'https://safeonweb.be', rawDate: new Date('2026-02-15').toISOString(), isFallback: true, tags: ['arnaques','sms']
+      },
+      {
+        title: '⚠️ Phishing Ameli : faux SMS "remboursement de 68,50 € disponible"',
+        desc: 'Des SMS imitant l\'Assurance Maladie (Ameli) promettent un remboursement. Le faux formulaire vole vos données personnelles et bancaires.',
+        fullDesc: 'Ces SMS de phishing ciblent tous les assurés sociaux français. Ils affichent un montant précis (68,50 €, 72,30 €...) pour paraître authentiques.\n\n🛡️ Comment vous protéger :\n• Ameli n\'envoie jamais de lien de remboursement par SMS\n• Connectez-vous uniquement sur ameli.fr\n• Votre vrai relevé de remboursement est accessible depuis votre espace Ameli\n• Transférez le SMS suspect au 33700',
+        source: '🇫🇷 Cybermalveillance', color: '#002395', bg: '#e8ecff', id: 'cybermaly', country: 'fr',
+        link: 'https://www.cybermalveillance.gouv.fr', rawDate: new Date('2026-02-10').toISOString(), isFallback: true, tags: ['arnaques','sms','phishing']
+      },
+      {
+        title: '⚠️ Arnaque PayPal : faux virement reçu, demande de remboursement',
+        desc: 'Un acheteur prétend avoir viré trop d\'argent par erreur et demande un remboursement partiel. Le virement initial est frauduleux et sera annulé par PayPal.',
+        fullDesc: 'Cette arnaque cible les vendeurs particuliers sur LeBonCoin, Vinted, Facebook Marketplace.\n\nDéroulement type :\n1. L\'acheteur affirme vous avoir envoyé trop d\'argent\n2. Il vous demande de lui rembourser la différence\n3. Son virement PayPal initial est frauduleux et sera annulé\n4. Vous perdez l\'argent remboursé\n\n🛡️ Règle : attendez toujours que le virement soit définitivement crédité avant d\'envoyer quoi que ce soit.',
+        source: '🇧🇪 Safeonweb.be', color: '#000099', bg: '#dde6ff', id: 'safeonweb', country: 'be',
+        link: 'https://safeonweb.be', rawDate: new Date('2026-02-05').toISOString(), isFallback: true, tags: ['arnaques']
+      },
+      {
+        title: '⚠️ Vishing : faux appel DHL/UPS — colis bloqué en douane',
+        desc: 'Un robot vocal ou un opérateur prétend que votre colis est bloqué en douane et demande un paiement ou des informations personnelles par téléphone.',
+        fullDesc: 'Le "vishing" (phishing vocal) se développe rapidement grâce aux robots d\'appel automatiques.\n\nComment ça fonctionne :\n• Vous recevez un appel d\'un robot qui dit que votre colis est bloqué\n• On vous transfère à un "agent" qui demande vos informations personnelles ou un paiement\n\n🛡️ Comment vous protéger :\n• Raccrochez immédiatement\n• Vérifiez l\'état de votre colis directement sur le site du transporteur\n• Les transporteurs légitimes ne demandent jamais de paiement par téléphone',
+        source: '🇫🇷 Cybermalveillance', color: '#002395', bg: '#e8ecff', id: 'cybermaly', country: 'fr',
+        link: 'https://www.cybermalveillance.gouv.fr', rawDate: new Date('2026-02-01').toISOString(), isFallback: true, tags: ['arnaques','sms']
       }
     ];
 
@@ -3421,9 +3498,10 @@ const NewsScreen = {
       { url: 'https://www.safeonweb.be/fr/rss',                                       source: '🇧🇪 Safeonweb.be',      color: '#000099', bg: '#dde6ff', id: 'safeonweb',  country: 'be', localOnly: true  },
       { url: 'https://www.cert.ssi.gouv.fr/feed/',                                    source: '🇫🇷 CERT-FR',            color: '#003189', bg: '#e0e8ff', id: 'certfr',    country: 'fr', localOnly: true  },
       { url: 'https://www.cybermalveillance.gouv.fr/feed/atom-flux-actualites',        source: '🇫🇷 Cybermalveillance', color: '#002395', bg: '#e8ecff', id: 'cybermaly', country: 'fr', localOnly: false },
-      { url: 'https://www.zataz.com/category/arnaque/feed/',                           source: '🇫🇷 ZATAZ Arnaques',   color: '#d62828', bg: '#ffeaea', id: 'zataz',    country: 'fr', localOnly: false },
-      { url: 'https://www.undernews.fr/feed',                                          source: '🇫🇷 Undernews',         color: '#6b21a8', bg: '#f3e8ff', id: 'undernews',country: 'fr', localOnly: false },
     ];
+
+    // Filtre : exclure les articles trop techniques (CVE, APT, vulnérabilités pros)
+    const TECH_RE = /\b(CVE-\d|APT\d|zero.?day|pentest|firmware|exploit kit|ransomware group|indicators? of compromise|IOC\b|MITRE|TTP\b|SCADA|ICS\b|OT\b|opérateur.{0,20}vital|secteur\b.{0,30}(industriel|énergie|santé|transport))\b/i;
 
     let items = [];
     await Promise.allSettled(
@@ -3437,7 +3515,9 @@ const NewsScreen = {
               new Promise((_, r) => setTimeout(() => r(new Error('timeout')), 8000))
             ]);
             const xml = await res.text();
-            items.push(...this._parseRSS(xml, feed));
+            const parsed = this._parseRSS(xml, feed)
+              .filter(i => !TECH_RE.test(i.title + ' ' + i.desc));
+            items.push(...parsed);
           } catch {}
         })
     );
